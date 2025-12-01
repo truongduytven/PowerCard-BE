@@ -1,0 +1,32 @@
+import { RelationMappings, Model } from 'objection'
+import BaseModel from './BaseModel'
+
+export interface IMedia {
+  id: string
+  name?: string
+  imageUrl?: string
+  imageId?: string
+  status: string
+}
+
+export default class Media extends BaseModel implements IMedia {
+  id!: string
+  name!: string
+  imageUrl!: string
+  imageId!: string
+  status!: string
+
+  static tableName = 'media'
+
+  static relationMappings: RelationMappings = {
+    flashcard: {
+      relation: Model.HasManyRelation,
+      modelClass: () => require('./Flashcards').default,
+      join: {
+        from: 'media.id',
+        to: 'flashcards.mediaId'
+      }
+    }
+  }
+}
+
