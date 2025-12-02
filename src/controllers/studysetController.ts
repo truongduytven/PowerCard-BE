@@ -238,6 +238,148 @@ class studysetController {
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
+
+  async updateStudySet(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const body = req.body as CreateStudySetBody;
+      const userId = (req as any).user.id;
+
+      const studySet = await StudySets.query()
+        .where("id", id)
+        .andWhere("userId", userId)
+        .first();
+
+      if (!studySet) {
+        return res.status(404).json({ message: "Không tìm thấy bộ học tập" });
+      }
+
+      if (body.title && body.title !== studySet.title) {
+        const existingStudySet = await StudySets.query()
+          .where("userId", userId)
+          .andWhere("title", body.title)
+          .whereNot("id", id)
+          .first();
+
+        if (existingStudySet) {
+          return res
+            .status(400)
+            .json({ message: "Bạn đã có bộ học tập với tiêu đề này" });
+        }
+      }
+
+      await StudySets.transaction(async (trx) => {
+        let finalTopicId = body.topicId || studySet.topicId;
+
+        if (body.topicId && !isUUID(body.topicId)) {
+          const existingTopic = await Topics.query(trx)
+            .where("LOWER(name) = ?", body.topicId.toLowerCase())
+            .first();
+
+          if (existingTopic) {
+            finalTopicId = existingTopic.id;
+          } else {
+            const newTopic = await Topics.query(trx).insert({
+              name: body.topicId,
+              status: "active",
+            });
+            finalTopicId = newTopic.id;
+          }
+        }
+
+        await StudySets.query(trx).patchAndFetchById(id, {
+          title: body.title || studySet.title,
+          description: body.description || studySet.description,
+          topicId: finalTopicId,
+          isPublic: body.isPublic !== undefined ? body.isPublic : studySet.isPublic,
+          numberOfFlashcards: body.flashcards?.length || studySet.numberOfFlashcards,
+          updatedAt: new Date().toISOString(),
+        });
+
+        if (Array.isArray(body.flashcards)) {
+          const existingFlashcards = await Flashcards.query(trx)
+            .where("studySetId", id);
+
+          const existingFlashcardIds = existingFlashcards.map((f) => f.id);
+          const newFlashcardIds = body.flashcards
+            .filter((f: any) => f.id)
+            .map((f: any) => f.id);
+
+          const toDelete = existingFlashcardIds.filter(
+            (fId) => !newFlashcardIds.includes(fId)
+          );
+
+          if (toDelete.length > 0) {
+            await Flashcards.query(trx).whereIn("id", toDelete).delete();
+          }
+
+          await Promise.all(
+            body.flashcards.map(async (flashcard: any) => {
+              if (flashcard.id && existingFlashcardIds.includes(flashcard.id)) {
+                await Flashcards.query(trx).patchAndFetchById(flashcard.id, {
+                  mediaId: flashcard.mediaId,
+                  position: flashcard.position,
+                  term: flashcard.term,
+                  definition: flashcard.definition,
+                  updatedAt: new Date().toISOString(),
+                });
+              } else {
+                await Flashcards.query(trx).insert({
+                  studySetId: id,
+                  mediaId: flashcard.mediaId,
+                  position: flashcard.position,
+                  term: flashcard.term,
+                  definition: flashcard.definition,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                });
+              }
+
+              if (flashcard.mediaId) {
+                const media = await Media.query(trx).findById(flashcard.mediaId);
+                if (media && !media.name) {
+                  await Media.query(trx)
+                    .findById(flashcard.mediaId)
+                    .patch({ name: flashcard.term });
+                }
+              }
+            })
+          );
+        }
+      });
+
+      res.status(200).json({ message: "Cập nhật bộ học tập thành công" });
+    } catch (error) {
+      console.error("Error updating study set:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
+  async deleteStudySet(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.id;
+
+      const studySet = await StudySets.query()
+        .where("id", id)
+        .andWhere("userId", userId)
+        .first();
+
+      if (!studySet) {
+        return res.status(404).json({ message: "Không tìm thấy bộ học tập" });
+      }
+
+      await StudySets.query()
+        .where("id", id)
+        .andWhere("userId", userId)
+        .patch({ status: "inactive" });
+
+      res.status(200).json({ message: "Xóa bộ học tập thành công" });
+    } catch (error) {
+      console.error("Error deleting study set:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
 }
 
 export default new studysetController();

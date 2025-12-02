@@ -114,4 +114,86 @@ router.get("/:id", studysetController.getStudySetById);
  */
 router.post("/", studysetController.createStudySet);
 
+/** 
+ * @openapi
+ * /studyset/{id}:
+ *    put:
+ *      summary: Cập nhật bộ học tập
+ *      tags: [StudySets]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                title:
+ *                  type: string
+ *                description:
+ *                  type: string
+ *                topicId:
+ *                  type: string
+ *                isPublic:
+ *                  type: boolean
+ *                flashcards:
+ *                  type: array
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      mediaId:
+ *                        type: string
+ *                      position:
+ *                        type: integer
+ *                      term:
+ *                        type: string
+ *                      definition:
+ *                        type: string
+ *        responses:
+ *          200:
+ *            description: Cập nhật bộ học tập thành công
+ *          400:
+ *            description: Yêu cầu không hợp lệ
+ *          401:
+ *            description: Chưa xác thực
+ *          404:
+ *            description: Không tìm thấy bộ học tập
+ *          500:
+ *            description: Lỗi server
+ */
+router.put('/:id', studysetController.updateStudySet);
+
+/** 
+ * @openapi
+ * /studyset/{id}:
+ *    delete:
+ *      summary: Xóa bộ học tập
+ *      tags: [StudySets]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *      responses:
+ *        200:
+ *          description: Xóa bộ học tập thành công
+ *        401:
+ *          description: Chưa xác thực
+ *        404:
+ *          description: Không tìm thấy bộ học tập
+ *        500:
+ *          description: Lỗi server
+ */
+router.delete('/:id', studysetController.deleteStudySet);
+
 export default router;
