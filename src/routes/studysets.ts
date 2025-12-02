@@ -1,6 +1,6 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import studysetController from '../controllers/studysetController';
+import studysetController from "../controllers/studysetController";
 
 /**
  * @openapi
@@ -20,7 +20,7 @@ import studysetController from '../controllers/studysetController';
  *     parameters:
  *       - in: query
  *         name: isAuthor
- *         required: true  
+ *         required: true
  *         schema:
  *           type: boolean
  *     responses:
@@ -33,6 +33,54 @@ import studysetController from '../controllers/studysetController';
  *       500:
  *         description: Lỗi server
  */
-router.get('/', studysetController.getListStudySets);
+router.get("/", studysetController.getListStudySets);
+
+/**
+ * @openapi
+ * /studyset:
+ *   post:
+ *     summary: Tạo bộ học tập mới
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               topicId:
+ *                 type: string
+ *               isPublic:
+ *                 type: boolean
+ *               flashcards:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     mediaId:
+ *                       type: string
+ *                     position:
+ *                       type: integer
+ *                     term:
+ *                       type: string
+ *                     definition:
+ *                       type: string
+ *     responses:
+ *       201:
+ *         description: Tạo bộ học tập thành công
+ *       400:
+ *         description: Yêu cầu không hợp lệ
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi server
+ */
+router.post("/", studysetController.createStudySet);
 
 export default router;

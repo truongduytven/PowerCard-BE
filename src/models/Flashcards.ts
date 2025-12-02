@@ -3,7 +3,7 @@ import BaseModel from './BaseModel'
 
 export interface IFlashcard {
   id: string
-  mediaId?: string
+  mediaId: string | null
   position?: number
   studySetId: string
   term: string
@@ -14,7 +14,7 @@ export interface IFlashcard {
 
 export default class Flashcards extends BaseModel implements IFlashcard {
   id!: string
-  mediaId!: string
+  mediaId!: string | null
   position!: number
   studySetId!: string
   term!: string

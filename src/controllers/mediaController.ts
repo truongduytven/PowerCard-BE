@@ -37,10 +37,26 @@ class MediaController {
         status: 'active'
       });
 
-      const { id, ...data } = result;
-      res.status(201).json({ message: 'Tải lên media thành công', data });
+      res.status(201).json({ message: 'Tải lên media thành công', data: result });
     } catch (error) {
       console.error('Error uploading media:', error);
+      res.status(500).json({ message: 'Đã xảy ra lỗi máy chủ' });
+    }
+  }
+
+  async getMediaList(req: Request, res: Response) {
+    try {
+      const search = req.query.search as string | undefined;
+
+      let result = Media.query().where('status', 'active');
+      
+      if (search) {
+        result = result.andWhere('name', 'like', `%${search}%`);
+      }
+
+      res.status(200).json({ message: 'Lấy danh sách media thành công', data: await result.clone() });
+    } catch (error) {
+      console.error('Error fetching media list:', error);
       res.status(500).json({ message: 'Đã xảy ra lỗi máy chủ' });
     }
   }

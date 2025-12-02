@@ -35,12 +35,14 @@ class foldersetController {
         .alias("ss")
         .innerJoin("folder_study_sets as fss", "ss.id", "fss.study_set_id")
         .innerJoin("users", "ss.userId", "users.id")
+        .innerJoin("topics", "ss.topicId", "topics.id")
         .where("fss.folder_set_id", folderSetId)
         .andWhere("fss.status", "active")
         .select(
           "ss.id",
           "ss.title",
           "ss.description",
+          "topics.name as topic_name",
           "ss.is_public",
           "users.username",
           "users.avatar_url",

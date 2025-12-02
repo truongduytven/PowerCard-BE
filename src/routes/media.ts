@@ -41,4 +41,29 @@ import upload from "../middlewares/upload";
 
 router.post("/upload", upload.single("media"), mediaController.uploadMedia);
 
+/**
+ * @openapi
+ * /media:
+ *   get:
+ *    summary: Lấy danh sách media của người dùng
+ *    tags: [Media]
+ *    security:
+ *      - bearerAuth: []
+ *    parameters:
+ *      - in: query
+ *        name: search
+ *        schema:
+ *          type: string
+ *          required: false
+ *    responses:
+ *      200:
+ *        description: Lấy danh sách media thành công
+ *      401:
+ *        description: Không có quyền truy cập
+ *      500:
+ *        description: Đã xảy ra lỗi máy chủ
+ */
+
+router.get("/", mediaController.getMediaList);
+
 export default router;
