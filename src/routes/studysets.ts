@@ -20,7 +20,12 @@ import studysetController from "../controllers/studysetController";
  *     parameters:
  *       - in: query
  *         name: isAuthor
- *         required: true
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: isLearning
+ *         required: false
  *         schema:
  *           type: boolean
  *     responses:
@@ -34,6 +39,32 @@ import studysetController from "../controllers/studysetController";
  *         description: Lỗi server
  */
 router.get("/", studysetController.getListStudySets);
+
+/**
+ * @openapi
+ * /studyset/{id}:
+ *   get:
+ *     summary: Lấy thông tin chi tiết bộ học tập
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thông tin tài khoản
+ *       401:
+ *         description: Chưa xác thực
+ *       404:
+ *         description: Không tìm thấy tài khoản
+ *       500:
+ *         description: Lỗi server
+ */
+router.get("/:id", studysetController.getStudySetById);
 
 /**
  * @openapi

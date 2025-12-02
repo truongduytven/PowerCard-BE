@@ -31,6 +31,7 @@ export async function up(knex: Knex): Promise<void> {
     table.text('description').notNullable()
     table.boolean('is_public').defaultTo(false)
     table.integer('number_of_flashcards').defaultTo(0)
+    table.string('status', 50).notNullable().defaultTo('active')
     table.timestamp('created_at').defaultTo(knex.fn.now())
     table.timestamp('updated_at').defaultTo(knex.fn.now())
 
@@ -57,6 +58,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('study_set_id').notNullable()
     table.text('term').notNullable()
     table.text('definition').notNullable()
+    table.string('status', 50).notNullable().defaultTo('active')
     table.timestamp('created_at').defaultTo(knex.fn.now())
     table.timestamp('updated_at').defaultTo(knex.fn.now())
 

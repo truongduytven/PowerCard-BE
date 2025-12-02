@@ -8,6 +8,7 @@ export interface IFlashcard {
   studySetId: string
   term: string
   definition: string
+  status: string
   createdAt: string
   updatedAt: string
 }
@@ -19,6 +20,7 @@ export default class Flashcards extends BaseModel implements IFlashcard {
   studySetId!: string
   term!: string
   definition!: string
+  status!: string
   createdAt!: string
   updatedAt!: string
 

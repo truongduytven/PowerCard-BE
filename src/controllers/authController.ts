@@ -71,11 +71,14 @@ class AuthController {
       }
 
       const hashedPassword = await bcrypt.hash(password as string, 10);
+      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || email)}`
 
       await Users.query().insert({
         email,
         password: hashedPassword,
         username: name,
+        avatarUrl,
+        avatarId: '',
         role: 'user',
         status: 'active'
       });

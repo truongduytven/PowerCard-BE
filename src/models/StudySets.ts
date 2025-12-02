@@ -9,6 +9,7 @@ export interface IStudySet {
   topicId: string
   isPublic: boolean
   numberOfFlashcards?: number
+  status: string
   createdAt: string
   updatedAt: string
 }
@@ -21,6 +22,7 @@ export default class StudySets extends BaseModel implements IStudySet {
   topicId!: string
   isPublic!: boolean
   numberOfFlashcards?: number
+  status!: string
   createdAt!: string
   updatedAt!: string
 

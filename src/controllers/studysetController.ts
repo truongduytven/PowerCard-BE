@@ -3,7 +3,7 @@ import StudySets from "../models/StudySets";
 import Topics from "../models/Topics";
 import Flashcards from "../models/Flashcards";
 import Media from "../models/Media";
-import knex from "knex";
+import knex from "../configs/db";
 
 interface CreateStudySetBody {
   title: string;
@@ -27,19 +27,46 @@ function isUUID(str: string): boolean {
 class studysetController {
   async getListStudySets(req: Request, res: Response) {
     try {
-      const isAuthor = req.query.isAuthor === "true";
+      const { isAuthor, isLearning } = req.query;
+      const userId = (req as any).user.id;
       const studySets = await StudySets.query()
         .alias("ss")
         .modify((queryBuilder) => {
           if (isAuthor) {
-            queryBuilder.where("ss.userId", (req as any).user.id);
+            if (isAuthor === "true") {
+              queryBuilder.where("ss.userId", userId);
+            } else {
+              queryBuilder.whereNot("ss.userId", userId);
+              queryBuilder.andWhere("ss.is_public", true);
+            }
           } else {
-            queryBuilder.whereNot("ss.userId", (req as any).user.id);
             queryBuilder.andWhere("ss.is_public", true);
+          }
+          if (isLearning) {
+            if (isLearning === "true") {
+              queryBuilder
+                .innerJoin("user_learns as ul", "ss.id", "ul.study_set_id")
+                .where("ul.user_id", userId)
+                .andWhere("ul.status", "learning")
+                .select("ul.processing as processing");
+            }
           }
         })
         .innerJoin("users", "ss.userId", "users.id")
         .innerJoin("topics", "ss.topicId", "topics.id")
+        .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+        .groupBy(
+          "ss.id",
+          "ss.title",
+          "ss.description",
+          "topics.name",
+          "users.username",
+          "users.avatar_url",
+          "ss.is_public",
+          "ss.number_of_flashcards",
+          "ss.created_at",
+          "ss.updated_at"
+        )
         .select(
           "ss.id",
           "ss.title",
@@ -50,7 +77,9 @@ class studysetController {
           "ss.is_public",
           "ss.number_of_flashcards",
           "ss.created_at",
-          "ss.updated_at"
+          "ss.updated_at",
+          knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
+          knex.raw("COUNT(r.id)::int as number_of_reviews")
         );
 
       res.status(200).json({
@@ -59,6 +88,73 @@ class studysetController {
       });
     } catch (error) {
       console.error("Error fetching study sets:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
+  async getStudySetById(req: Request, res: Response) {
+    try {
+      const studySetId = req.params.id;
+
+      const studySet = await StudySets.query()
+        .alias("ss")
+        .innerJoin("users", "ss.userId", "users.id")
+        .innerJoin("topics", "ss.topicId", "topics.id")
+        .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+        .where("ss.id", studySetId)
+        .andWhere("ss.status", "active")
+        .groupBy(
+          "ss.id",
+          "ss.title",
+          "ss.description",
+          "topics.name",
+          "users.username",
+          "users.avatar_url",
+          "ss.is_public",
+          "ss.number_of_flashcards",
+          "ss.created_at",
+          "ss.updated_at"
+        )
+        .select(
+          "ss.id",
+          "ss.title",
+          "ss.description",
+          "topics.name as topic_name",
+          "users.username",
+          "users.avatar_url",
+          "ss.is_public",
+          "ss.number_of_flashcards",
+          "ss.created_at",
+          "ss.updated_at",
+          knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
+          knex.raw("COUNT(r.id)::int as number_of_reviews")
+        )
+        .first();
+      
+      if (!studySet) {
+        return res.status(404).json({ message: "Không tìm thấy bộ học tập" });
+      }
+
+      const flashcards = await Flashcards.query()
+        .alias("flashcards")
+        .leftJoin("media as media", "flashcards.mediaId", "media.id")
+        .where("flashcards.studySetId", studySetId)
+        .select(
+          "flashcards.id",
+          "media.imageUrl as media_url",
+          "flashcards.position",
+          "flashcards.term",
+          "flashcards.definition" 
+        )
+        .orderBy("position", "asc");
+
+      const result = {
+        ...studySet,
+        flashcards: flashcards,
+      };
+      res.status(200).json({ message: "Lấy bộ học tập thành công", data: result });
+    } catch (error) {
+      console.error("Error fetching study set by ID:", error);
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
