@@ -1,6 +1,7 @@
 import express from "express";
 import authController from "../controllers/authController";
 import { protectedRoute } from "../middlewares/authMiddleware";
+import upload from "../middlewares/upload";
 const router = express.Router();
 
 /**
@@ -98,5 +99,35 @@ router.post("/signup", authController.register);
  *         description: Lỗi server
  */
 router.get("/me", protectedRoute, authController.getMe);
+
+/**
+ * @openapi
+ * /auth/upload-avatar:
+ *   post:
+ *     summary: Tải lên ảnh đại diện
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *         schema:
+ *          type: object
+ *          properties:
+ *           avatar:
+ *              type: string
+ *              format: binary
+ *     responses:
+ *        200:
+ *          description: Tải lên ảnh đại diện thành công
+ *        400:
+ *          description: Chưa có file được tải lên
+ *        401:
+ *          description: Không có quyền truy cập
+ *        500:
+ *          description: Đã xảy ra lỗi máy chủ
+ */
+router.post("/upload-avatar", protectedRoute, upload.single("avatar"), authController.uploadAvatar);
 
 export default router;
