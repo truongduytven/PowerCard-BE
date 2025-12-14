@@ -7,6 +7,7 @@ export interface IStudySet {
   title: string
   description: string
   topicId: string
+  icon: string
   isPublic: boolean
   numberOfFlashcards?: number
   status: string
@@ -20,6 +21,7 @@ export default class StudySets extends BaseModel implements IStudySet {
   title!: string
   description!: string
   topicId!: string
+  icon!: string
   isPublic!: boolean
   numberOfFlashcards?: number
   status!: string
@@ -43,14 +45,6 @@ export default class StudySets extends BaseModel implements IStudySet {
       join: {
         from: 'study_sets.id',
         to: 'flashcards.study_set_id',
-      },
-    },
-    usertests: {
-      relation: Model.HasManyRelation,
-      modelClass: () => require('./UserTests').default,
-      join: {
-        from: 'study_sets.id',
-        to: 'user_tests.study_set_id',
       },
     },
     reviews: {
@@ -83,6 +77,22 @@ export default class StudySets extends BaseModel implements IStudySet {
       join: {
         from: 'study_sets.topic_id',
         to: 'topics.id',
+      },
+    },
+    interactions: {
+      relation: Model.HasManyRelation,
+      modelClass: () => require('./StudySetInteractions').default,
+      join: {
+        from: 'study_sets.id',
+        to: 'study_set_interactions.study_set_id',
+      },
+    },
+    stats: {
+      relation: Model.HasOneRelation,
+      modelClass: () => require('./StudySetStats').default,
+      join: {
+        from: 'study_sets.id',
+        to: 'study_set_stats.study_set_id',
       },
     }
   }

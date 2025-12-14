@@ -1,3 +1,9 @@
+/**
+ * @deprecated This model is deprecated and will be removed in future versions.
+ * Test functionality now uses runtime-only logic without database persistence.
+ * See testService.ts for new implementation.
+ */
+
 import { RelationMappings, Model } from 'objection'
 import BaseModel from './BaseModel'
 
