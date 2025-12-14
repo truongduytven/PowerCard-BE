@@ -196,4 +196,118 @@ router.put('/:id', studysetController.updateStudySet);
  */
 router.delete('/:id', studysetController.deleteStudySet);
 
+// ===== INTERACTION ROUTES =====
+
+/**
+ * @openapi
+ * /studyset/{id}/favorite:
+ *   post:
+ *     summary: Thêm bộ học tập vào yêu thích
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Đã thêm vào yêu thích
+ *       400:
+ *         description: Đã yêu thích rồi
+ *       401:
+ *         description: Chưa xác thực
+ *       404:
+ *         description: Không tìm thấy bộ học tập
+ *       500:
+ *         description: Lỗi server
+ */
+router.post('/:id/favorite', studysetController.addFavorite);
+
+/**
+ * @openapi
+ * /studyset/{id}/favorite:
+ *   delete:
+ *     summary: Xóa bộ học tập khỏi yêu thích
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Đã xóa khỏi yêu thích
+ *       401:
+ *         description: Chưa xác thực
+ *       404:
+ *         description: Chưa yêu thích
+ *       500:
+ *         description: Lỗi server
+ */
+router.delete('/:id/favorite', studysetController.removeFavorite);
+
+/**
+ * @openapi
+ * /studyset/{id}/stats:
+ *   get:
+ *     summary: Lấy thống kê của bộ học tập
+ *     tags: [StudySets]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thống kê bộ học tập
+ *       404:
+ *         description: Không tìm thấy bộ học tập
+ *       500:
+ *         description: Lỗi server
+ */
+router.get('/:id/stats', studysetController.getStats);
+
+// ===== TEST ROUTE =====
+
+/**
+ * @openapi
+ * /studyset/{id}/test:
+ *   get:
+ *     summary: Tạo bài test từ bộ học tập (không lưu DB)
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Bài test được tạo thành công
+ *       400:
+ *         description: Không đủ flashcard để tạo test
+ *       401:
+ *         description: Chưa xác thực
+ *       404:
+ *         description: Không tìm thấy bộ học tập
+ *       500:
+ *         description: Lỗi server
+ */
+router.get('/:id/test', studysetController.generateTest);
+
 export default router;

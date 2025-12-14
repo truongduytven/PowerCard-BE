@@ -1,19 +1,16 @@
 import { Request, Response } from "express";
-import FolderSets from "../models/FolderSets";
-import StudySets from "../models/StudySets";
-import FolderStudySets from "../models/FolderStudySets";
+import foldersetService from "../services/foldersetService";
 
-class foldersetController {
+class FoldersetController {
   async getAllFolderSets(req: Request, res: Response) {
     try {
-      const result = await FolderSets.query()
-        .where("userId", (req as any).user.id)
-        .where("status", "active")
-        .select("id", "title", "description", "number_of_study_sets");
-
+      const result = await foldersetService.getAllFolderSets((req as any).user.id);
       res.status(200).json({ message: "Lấy tất cả bộ thư mục thành công", data: result });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching folder sets:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
@@ -21,47 +18,13 @@ class foldersetController {
   async getFolderSetById(req: Request, res: Response) {
     try {
       const folderSetId = req.params.id;
-
-      const folderSet = await FolderSets.query()
-        .where("id", folderSetId)
-        .andWhere("userId", (req as any).user.id)
-        .andWhere("status", "active")
-        .first();
-
-      if (!folderSet) {
-        return res.status(404).json({ message: "Không tìm thấy bộ thư mục" });
-      }
-
-      const studySets = await StudySets.query()
-        .alias("ss")
-        .innerJoin("folder_study_sets as fss", "ss.id", "fss.study_set_id")
-        .innerJoin("users", "ss.userId", "users.id")
-        .innerJoin("topics", "ss.topicId", "topics.id")
-        .where("fss.folder_set_id", folderSetId)
-        .andWhere("fss.status", "active")
-        .select(
-          "ss.id",
-          "ss.title",
-          "ss.description",
-          "topics.name as topic_name",
-          "ss.is_public",
-          "users.username",
-          "users.avatar_url",
-          "ss.number_of_flashcards",
-          "ss.created_at",
-          "ss.updated_at"
-        );
-
-      const result = {
-        id: folderSet.id,
-        title: folderSet.title,
-        description: folderSet.description,
-        studySets: studySets,
-      };
-
+      const result = await foldersetService.getFolderSetById(folderSetId, (req as any).user.id);
       res.status(200).json({ message: "Lấy thông tin bộ thư mục thành công", data: result });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching folder set by ID:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
@@ -71,29 +34,13 @@ class foldersetController {
       const { title, description, studySets } = req.body;
       const userId = (req as any).user.id;
 
-      if (!title || !description || !Array.isArray(studySets)) {
-        return res.status(400).json({ message: "Yêu cầu không hợp lệ" });
-      }
-
-      const newFolderSet = await FolderSets.query().insert({
-        userId,
-        title,
-        description,
-        numberOfStudySets: studySets.length || 0,
-        status: "active",
-      })
-
-      await Promise.all(studySets.map((studySetId: string) => 
-        FolderStudySets.query().insert({
-          folderSetId: newFolderSet.id,
-          studySetId,
-          status: "active",
-        })
-      ));
-
+      const newFolderSet = await foldersetService.createFolderSet(userId, title, description, studySets);
       res.status(201).json({ message: "Tạo bộ thư mục thành công", data: newFolderSet });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating folder set:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
@@ -104,74 +51,13 @@ class foldersetController {
       const { title, description, studySets } = req.body;
       const userId = (req as any).user.id;
 
-      const folderSet = await FolderSets.query()
-        .where("id", id)
-        .andWhere("userId", userId)
-        .andWhere("status", "active")
-        .first();
-
-      if (!folderSet) {
-        return res.status(404).json({ message: "Không tìm thấy bộ thư mục" });
-      }
-
-      await FolderSets.transaction(async (trx) => {
-        await FolderSets.query(trx).patchAndFetchById(id, {
-          title: title || folderSet.title,
-          description: description || folderSet.description,
-          numberOfStudySets: studySets?.length || folderSet.numberOfStudySets,
-        });
-
-        if (Array.isArray(studySets)) {
-          const existingRelations = await FolderStudySets.query(trx)
-            .where("folderSetId", id);
-
-          const activeRelations = existingRelations.filter((rel) => rel.status === "active");
-          const inactiveRelations = existingRelations.filter((rel) => rel.status === "inactive");
-          const activeStudySetIds = activeRelations.map((rel) => rel.studySetId);
-          const inactiveStudySetIds = inactiveRelations.map((rel) => rel.studySetId);
-          const newStudySetIds = studySets as string[];
-
-          const toReactivate = newStudySetIds.filter(
-            (studySetId) => inactiveStudySetIds.includes(studySetId)
-          );
-          const toAdd = newStudySetIds.filter(
-            (studySetId) => !activeStudySetIds.includes(studySetId) && !inactiveStudySetIds.includes(studySetId)
-          );
-          const toDeactivate = activeStudySetIds.filter(
-            (studySetId) => !newStudySetIds.includes(studySetId)
-          );
-
-          if (toReactivate.length > 0) {
-            await FolderStudySets.query(trx)
-              .whereIn("studySetId", toReactivate)
-              .andWhere("folderSetId", id)
-              .patch({ status: "active" });
-          }
-
-          if (toAdd.length > 0) {
-            await Promise.all(
-              toAdd.map((studySetId) =>
-                FolderStudySets.query(trx).insert({
-                  folderSetId: id,
-                  studySetId,
-                  status: "active",
-                })
-              )
-            );
-          }
-
-          if (toDeactivate.length > 0) {
-            await FolderStudySets.query(trx)
-              .whereIn("studySetId", toDeactivate)
-              .andWhere("folderSetId", id)
-              .patch({ status: "inactive" });
-          }
-        }
-      });
-
+      await foldersetService.updateFolderSet(id, userId, title, description, studySets);
       res.status(200).json({ message: "Cập nhật bộ thư mục thành công" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating folder set:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
@@ -181,27 +67,16 @@ class foldersetController {
       const { id } = req.params;
       const userId = (req as any).user.id;
 
-      const folderSet = await FolderSets.query()
-        .where("id", id)
-        .andWhere("userId", userId)
-        .andWhere("status", "active")
-        .first();
-
-      if (!folderSet) {
-        return res.status(404).json({ message: "Không tìm thấy bộ thư mục" });
-      }
-
-      await FolderSets.query()
-        .where("id", id)
-        .patch({ status: "inactive" });
-
-
+      await foldersetService.deleteFolderSet(id, userId);
       res.status(200).json({ message: "Xóa bộ thư mục thành công" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting folder set:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
 }
 
-export default new foldersetController();
+export default new FoldersetController();

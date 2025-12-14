@@ -69,6 +69,14 @@ export default class Users extends BaseModel implements IUser {
         to: 'user_learns.userId',
       },
     },
+    userlog: {
+      relation: Model.HasOneRelation,
+      modelClass: () => require('./UserLog').default,
+      join: {
+        from: 'users.id',
+        to: 'user_logs.userId',
+      },
+    },
   }
 }
 

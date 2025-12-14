@@ -1,45 +1,22 @@
 import { Request, Response } from 'express';
-import cloudinary from '../configs/cloudinary';
-import Media from '../models/Media';
+import mediaService from '../services/mediaService';
 
 class MediaController {
   async uploadMedia(req: Request, res: Response) {
     try {
       const userId = (req as any).user.id;
-      if (!userId) {
-        return res.status(401).json({ message: 'Không có quyền truy cập' });
-      }
 
       if (!req.file) {
         return res.status(400).json({ message: 'Chưa có file được tải lên' });
       }
 
-      const uploadImage = await new Promise<any>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: `PowerCard/media`,
-            transformation: [
-              { width: 400, height: 400, crop: 'limit' },
-              { quality: 'auto' }
-            ]
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(req.file?.buffer);
-      })
-
-      const result = await Media.query().insert({
-        imageUrl: uploadImage.secure_url,
-        imageId: uploadImage.public_id,
-        status: 'active'
-      });
-
+      const result = await mediaService.uploadMedia(userId, req.file);
       res.status(201).json({ message: 'Tải lên media thành công', data: result });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading media:', error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: 'Đã xảy ra lỗi máy chủ' });
     }
   }
@@ -47,16 +24,13 @@ class MediaController {
   async getMediaList(req: Request, res: Response) {
     try {
       const search = req.query.search as string | undefined;
-
-      let result = Media.query().where('status', 'active');
-      
-      if (search) {
-        result = result.andWhere('name', 'like', `%${search}%`);
-      }
-
-      res.status(200).json({ message: 'Lấy danh sách media thành công', data: await result.clone() });
-    } catch (error) {
+      const result = await mediaService.getMediaList(search);
+      res.status(200).json({ message: 'Lấy danh sách media thành công', data: result });
+    } catch (error: any) {
       console.error('Error fetching media list:', error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
       res.status(500).json({ message: 'Đã xảy ra lỗi máy chủ' });
     }
   }

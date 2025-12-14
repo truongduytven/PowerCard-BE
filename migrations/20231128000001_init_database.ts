@@ -29,6 +29,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('topic_id').nullable()
     table.string('title', 255).notNullable()
     table.text('description').notNullable()
+    table.string('icon', 100).nullable()
     table.boolean('is_public').defaultTo(false)
     table.integer('number_of_flashcards').defaultTo(0)
     table.string('status', 50).notNullable().defaultTo('active')
@@ -147,40 +148,26 @@ export async function up(knex: Knex): Promise<void> {
     table.index('difficulty_id')
   })
 
-  // Create user_tests table
-  await knex.schema.createTable('user_tests', (table) => {
+  // Create user_logs table
+  await knex.schema.createTable('user_logs', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'))
-    table.uuid('user_id').notNullable()
-    table.uuid('study_set_id').notNullable()
-    table.integer('num_questions').notNullable()
-    table.integer('minutes').notNullable()
-    table.integer('score').nullable()
-    table.string('status', 50).notNullable().defaultTo('in_progress')
-    table.timestamp('created_at').defaultTo(knex.fn.now())
-    table.timestamp('updated_at').defaultTo(knex.fn.now())
+    table.uuid('user_id').notNullable().unique()
+    table.integer('record_streaks').notNullable().defaultTo(0)
+    table.integer('longest_streaks').notNullable().defaultTo(0)
+    table.timestamp('last_login_at').nullable()
 
     table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE')
-    table.foreign('study_set_id').references('id').inTable('study_sets').onDelete('CASCADE')
     table.index('user_id')
-    table.index('study_set_id')
   })
 
-  // Create test_flashcards table
-  await knex.schema.createTable('test_flashcards', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'))
-    table.uuid('user_test_id').notNullable()
-    table.uuid('flashcard_id').notNullable()
-    table.text('user_answer').nullable()
-
-    table.foreign('user_test_id').references('id').inTable('user_tests').onDelete('CASCADE')
-    table.foreign('flashcard_id').references('id').inTable('flashcards').onDelete('CASCADE')
-    table.index('user_test_id')
-    table.index('flashcard_id')
-  })
+  // Note: user_tests and test_flashcards tables are deprecated
+  // They have been removed in favor of runtime-only test generation
+  // See migration 20231213000001_add_interactions_and_stats.ts
 }
 
 export async function down(knex: Knex): Promise<void> {
   // Drop tables in reverse order of dependencies
+  await knex.schema.dropTableIfExists('user_logs')
   await knex.schema.dropTableIfExists('test_flashcards')
   await knex.schema.dropTableIfExists('user_tests')
   await knex.schema.dropTableIfExists('learn_flashcards')

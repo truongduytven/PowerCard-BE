@@ -4,8 +4,10 @@ import { v4 as uuidv4 } from 'uuid'
 
 export async function seed(knex: Knex): Promise<void> {
   // Deletes ALL existing entries
-  await knex('test_flashcards').del()
-  await knex('user_tests').del()
+  // Note: test_flashcards and user_tests tables no longer exist (deprecated)
+  await knex('study_set_interactions').del()
+  await knex('study_set_stats').del()
+  await knex('user_logs').del()
   await knex('learn_flashcards').del()
   await knex('user_learns').del()
   await knex('reviews').del()
@@ -133,6 +135,7 @@ export async function seed(knex: Knex): Promise<void> {
       topic_id: topicId1,
       title: 'English Vocabulary - Basic',
       description: 'Essential English words for beginners',
+      icon: '📚',
       is_public: true,
       number_of_flashcards: 3,
       status: 'active',
@@ -145,6 +148,7 @@ export async function seed(knex: Knex): Promise<void> {
       topic_id: topicId2,
       title: 'JavaScript Fundamentals',
       description: 'Core concepts of JavaScript programming',
+      icon: '💻',
       is_public: true,
       number_of_flashcards: 3,
       status: 'active',
@@ -157,6 +161,7 @@ export async function seed(knex: Knex): Promise<void> {
       topic_id: topicId3,
       title: 'Mathematics - Algebra',
       description: 'Basic algebra formulas and concepts',
+      icon: '🔢',
       is_public: false,
       number_of_flashcards: 2,
       status: 'active',
@@ -169,6 +174,7 @@ export async function seed(knex: Knex): Promise<void> {
       topic_id: null,
       title: 'History - World War II',
       description: 'Important events and dates of WWII',
+      icon: '📖',
       is_public: true,
       number_of_flashcards: 2,
       status: 'active',
@@ -443,72 +449,198 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ])
 
-  // Insert study_progress - REMOVED as model no longer exists
-
-  // Generate UUIDs for user tests
-  const userTestId1 = uuidv4()
-  const userTestId2 = uuidv4()
-
-  // Insert user_tests
-  await knex('user_tests').insert([
+  // ===== NEW: Insert study_set_stats =====
+  await knex('study_set_stats').insert([
     {
-      id: userTestId1,
-      user_id: userId1,
-      study_set_id: studySetId2,
-      num_questions: 3,
-      minutes: 10,
-      score: 2,
-      status: 'completed',
+      study_set_id: studySetId1,
+      views: 156,
+      favorites: 23,
+      clones: 8,
+      shares: 12,
       created_at: knex.fn.now(),
       updated_at: knex.fn.now(),
     },
     {
-      id: userTestId2,
-      user_id: userId2,
+      study_set_id: studySetId2,
+      views: 243,
+      favorites: 45,
+      clones: 15,
+      shares: 18,
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    },
+    {
       study_set_id: studySetId3,
-      num_questions: 2,
-      minutes: 5,
-      score: null,
-      status: 'in_progress',
+      views: 89,
+      favorites: 12,
+      clones: 5,
+      shares: 7,
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    },
+    {
+      study_set_id: studySetId4,
+      views: 312,
+      favorites: 67,
+      clones: 22,
+      shares: 31,
       created_at: knex.fn.now(),
       updated_at: knex.fn.now(),
     },
   ])
 
-  // Insert test_flashcards
-  await knex('test_flashcards').insert([
-    // Test 1 - John's completed test
+  // ===== NEW: Insert study_set_interactions =====
+  await knex('study_set_interactions').insert([
+    // Views - including guest views (user_id = null)
     {
       id: uuidv4(),
-      user_test_id: userTestId1,
-      flashcard_id: flashcardId4,
-      user_answer: 'A container for storing data values',
+      study_set_id: studySetId1,
+      user_id: userId1,
+      type: 'view',
+      created_at: knex.raw("NOW() - INTERVAL '2 days'"),
     },
     {
       id: uuidv4(),
-      user_test_id: userTestId1,
-      flashcard_id: flashcardId5,
-      user_answer: 'A block of code designed to perform a task',
+      study_set_id: studySetId1,
+      user_id: userId2,
+      type: 'view',
+      created_at: knex.raw("NOW() - INTERVAL '1 day'"),
     },
     {
       id: uuidv4(),
-      user_test_id: userTestId1,
-      flashcard_id: flashcardId6,
-      user_answer: 'Wrong answer',
+      study_set_id: studySetId1,
+      user_id: null, // Guest view
+      type: 'view',
+      created_at: knex.raw("NOW() - INTERVAL '5 hours'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId2,
+      user_id: userId3,
+      type: 'view',
+      created_at: knex.raw("NOW() - INTERVAL '3 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId2,
+      user_id: null, // Guest view
+      type: 'view',
+      created_at: knex.raw("NOW() - INTERVAL '1 hour'"),
     },
 
-    // Test 2 - Jane's in-progress test
+    // Favorites
     {
       id: uuidv4(),
-      user_test_id: userTestId2,
-      flashcard_id: flashcardId7,
-      user_answer: null,
+      study_set_id: studySetId1,
+      user_id: userId2,
+      type: 'favorite',
+      created_at: knex.raw("NOW() - INTERVAL '5 days'"),
     },
     {
       id: uuidv4(),
-      user_test_id: userTestId2,
-      flashcard_id: flashcardId8,
-      user_answer: null,
+      study_set_id: studySetId1,
+      user_id: userId3,
+      type: 'favorite',
+      created_at: knex.raw("NOW() - INTERVAL '3 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId2,
+      user_id: userId1,
+      type: 'favorite',
+      created_at: knex.raw("NOW() - INTERVAL '7 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId3,
+      user_id: userId2,
+      type: 'favorite',
+      created_at: knex.raw("NOW() - INTERVAL '2 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId4,
+      user_id: userId1,
+      type: 'favorite',
+      created_at: knex.raw("NOW() - INTERVAL '4 days'"),
+    },
+
+    // Clones
+    {
+      id: uuidv4(),
+      study_set_id: studySetId1,
+      user_id: userId3,
+      type: 'clone',
+      created_at: knex.raw("NOW() - INTERVAL '10 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId2,
+      user_id: userId2,
+      type: 'clone',
+      created_at: knex.raw("NOW() - INTERVAL '8 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId4,
+      user_id: userId1,
+      type: 'clone',
+      created_at: knex.raw("NOW() - INTERVAL '6 days'"),
+    },
+
+    // Shares
+    {
+      id: uuidv4(),
+      study_set_id: studySetId1,
+      user_id: userId1,
+      type: 'share',
+      created_at: knex.raw("NOW() - INTERVAL '4 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId2,
+      user_id: userId3,
+      type: 'share',
+      created_at: knex.raw("NOW() - INTERVAL '2 days'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId2,
+      user_id: null, // Guest share
+      type: 'share',
+      created_at: knex.raw("NOW() - INTERVAL '1 day'"),
+    },
+    {
+      id: uuidv4(),
+      study_set_id: studySetId4,
+      user_id: userId2,
+      type: 'share',
+      created_at: knex.raw("NOW() - INTERVAL '3 days'"),
+    },
+  ])
+
+  // Insert user_logs
+  await knex('user_logs').insert([
+    {
+      id: uuidv4(),
+      user_id: userId1,
+      record_streaks: 5,
+      longest_streaks: 12,
+      last_login_at: knex.raw("NOW() - INTERVAL '1 day'"),
+    },
+    {
+      id: uuidv4(),
+      user_id: userId2,
+      record_streaks: 3,
+      longest_streaks: 8,
+      last_login_at: knex.raw("NOW() - INTERVAL '2 days'"),
+    },
+    {
+      id: uuidv4(),
+      user_id: userId3,
+      record_streaks: 1,
+      longest_streaks: 15,
+      last_login_at: knex.raw("NOW() - INTERVAL '3 days'"),
     },
   ])
 }
