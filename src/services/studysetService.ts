@@ -64,6 +64,7 @@ class StudySetService {
       .groupBy(
         "ss.id",
         "ss.title",
+        "ss.icon",
         "ss.description",
         "topics.name",
         "users.username",
@@ -75,6 +76,7 @@ class StudySetService {
       )
       .select(
         "ss.id",
+        "ss.icon",
         "ss.title",
         "ss.description",
         "topics.name as topic_name",

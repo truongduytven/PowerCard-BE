@@ -7,7 +7,7 @@ class FolderSetService {
     const result = await FolderSets.query()
       .where("userId", userId)
       .where("status", "active")
-      .select("id", "title", "description", "number_of_study_sets");
+      .select("id", "icon", "title", "description", "number_of_study_sets");
 
     return result;
   }

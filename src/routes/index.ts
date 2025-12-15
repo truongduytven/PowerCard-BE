@@ -8,6 +8,7 @@ import MediaRoute from './media'
 import TopicRoute from './topic'
 import StudyRoute from './study'
 import DifficultyRoute from './difficulty'
+import OverviewRoute from './overview'
 import { protectedRoute } from '../middlewares/authMiddleware'
 
 router.get('/', (req: express.Request, res: express.Response) => {
@@ -20,5 +21,6 @@ router.use('/study', protectedRoute, StudyRoute)
 router.use('/difficulty', protectedRoute, DifficultyRoute)
 router.use('/media', protectedRoute, MediaRoute)
 router.use('/topic', protectedRoute, TopicRoute)
+router.use('/overview', protectedRoute, OverviewRoute)
 
 export default router
