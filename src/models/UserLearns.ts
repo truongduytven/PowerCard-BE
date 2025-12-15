@@ -42,6 +42,14 @@ export default class UserLearns extends BaseModel implements IUserLearn{
         from: 'user_learns.id',
         to: 'learn_flashcards.userLearnId',
       },
+    },
+    difficulties: {
+      relation: Model.HasManyRelation,
+      modelClass: () => require('./Difficulties').default,
+      join: {
+        from: 'user_learns.id',
+        to: 'difficulties.user_learn_id',
+      },
     }
   }
 }

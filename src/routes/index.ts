@@ -6,6 +6,8 @@ import FolderSetRoute from './folderset'
 import StudySetRoute from './studysets'
 import MediaRoute from './media'
 import TopicRoute from './topic'
+import StudyRoute from './study'
+import DifficultyRoute from './difficulty'
 import { protectedRoute } from '../middlewares/authMiddleware'
 
 router.get('/', (req: express.Request, res: express.Response) => {
@@ -14,6 +16,8 @@ router.get('/', (req: express.Request, res: express.Response) => {
 router.use('/auth', AuthRoute)
 router.use('/folderset', protectedRoute, FolderSetRoute)
 router.use('/studyset', protectedRoute, StudySetRoute)
+router.use('/study', protectedRoute, StudyRoute)
+router.use('/difficulty', protectedRoute, DifficultyRoute)
 router.use('/media', protectedRoute, MediaRoute)
 router.use('/topic', protectedRoute, TopicRoute)
 

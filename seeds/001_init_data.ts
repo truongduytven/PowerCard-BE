@@ -28,30 +28,6 @@ export async function seed(knex: Knex): Promise<void> {
   const difficultyHardId = uuidv4()
   const difficultyVeryHardId = uuidv4()
 
-  // Insert difficulties
-  await knex('difficulties').insert([
-    {
-      id: difficultyEasyId,
-      name: 'Easy',
-      minutes: 1440, // 1 day
-    },
-    {
-      id: difficultyMediumId,
-      name: 'Medium',
-      minutes: 720, // 12 hours
-    },
-    {
-      id: difficultyHardId,
-      name: 'Hard',
-      minutes: 360, // 6 hours
-    },
-    {
-      id: difficultyVeryHardId,
-      name: 'Very Hard',
-      minutes: 60, // 1 hour
-    },
-  ])
-
   // Generate UUIDs for users
   const userId1 = uuidv4()
   const userId2 = uuidv4()
@@ -415,6 +391,33 @@ export async function seed(knex: Knex): Promise<void> {
       study_set_id: studySetId2,
       processing: 75,
       status: 'in_progress',
+    },
+  ])
+
+    await knex('difficulties').insert([
+    {
+      id: difficultyEasyId,
+      user_learn_id: userLearnId1,
+      name: 'Easy',
+      minutes: 1440, // 1 day
+    },
+    {
+      id: difficultyMediumId,
+      user_learn_id: userLearnId1,
+      name: 'Medium',
+      minutes: 720, // 12 hours
+    },
+    {
+      id: difficultyHardId,
+      user_learn_id: userLearnId1,
+      name: 'Hard',
+      minutes: 360, // 6 hours
+    },
+    {
+      id: difficultyVeryHardId,
+      user_learn_id: userLearnId1,
+      name: 'Very Hard',
+      minutes: 60, // 1 hour
     },
   ])
 

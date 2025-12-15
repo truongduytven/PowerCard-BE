@@ -3,12 +3,14 @@ import BaseModel from './BaseModel'
 
 export interface IDifficulty {
   id: string
+  userLearnId: string
   name: string
   minutes: number
 }
 
 export default class Difficulties extends BaseModel implements IDifficulty {
   id!: string
+  userLearnId!: string
   name!: string
   minutes!: number
 
@@ -21,6 +23,14 @@ export default class Difficulties extends BaseModel implements IDifficulty {
       join: {
         from: 'difficulties.id',
         to: 'learn_flashcards.difficultyId'
+      },
+    },
+    userlearn: {
+      relation: Model.BelongsToOneRelation,
+      modelClass: () => require('./UserLearns').default,
+      join: {
+        from: 'difficulties.user_learn_id',
+        to: 'user_learns.id',
       },
     }
   }

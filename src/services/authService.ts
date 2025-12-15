@@ -26,9 +26,6 @@ class AuthService {
       throw { status: 401, message: "Email hoặc mật khẩu không đúng" };
     }
 
-    // Update login streaks
-    await this.updateLoginStreaks(user.id);
-
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.ACCESS_TOKEN_SECRET as string,
@@ -148,8 +145,18 @@ class AuthService {
       throw { status: 404, message: "Không tìm thấy người dùng" };
     }
 
+    // Update login streaks
+    await this.updateLoginStreaks(user.id);
     // Get user logs
     const userLog = await UserLogs.query().where('userId', userId).first();
+
+    // Convert lastLoginAt to UTC+7
+    let lastLoginAtVN = null;
+    if (userLog && userLog.lastLoginAt) {
+      const date = new Date(userLog.lastLoginAt);
+      date.setHours(date.getHours() + 7);
+      lastLoginAtVN = date.toISOString();
+    }
 
     return {
       user: {
@@ -157,7 +164,7 @@ class AuthService {
         streaks: userLog ? {
           recordStreaks: userLog.recordStreaks,
           longestStreaks: userLog.longestStreaks,
-          lastLoginAt: userLog.lastLoginAt,
+          lastLoginAt: lastLoginAtVN,
         } : {
           recordStreaks: 0,
           longestStreaks: 0,

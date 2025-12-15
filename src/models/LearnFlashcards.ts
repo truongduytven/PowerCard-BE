@@ -6,9 +6,9 @@ export interface ILearnFlashcard {
   userLearnId: string
   flashcardId: string
   isLearned: boolean
-  difficultyId: string
-  nextReviewAt: string
-  lastReviewedAt: string
+  difficultyId: string | null
+  nextReviewAt: string | null
+  lastReviewedAt: string | null
 }
 
 export default class LearnFlashcards extends BaseModel implements ILearnFlashcard {
@@ -16,9 +16,9 @@ export default class LearnFlashcards extends BaseModel implements ILearnFlashcar
   userLearnId!: string
   flashcardId!: string
   isLearned!: boolean
-  difficultyId!: string
-  nextReviewAt!: string
-  lastReviewedAt!: string
+  difficultyId!: string | null
+  nextReviewAt!: string | null
+  lastReviewedAt!: string | null
 
   static tableName = 'learn_flashcards'
 
