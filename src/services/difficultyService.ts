@@ -21,7 +21,8 @@ class DifficultyService {
   async getDifficultiesConfig(userLearnId: string) {
     const difficulties = await Difficulties.query()
       .where('userLearnId', userLearnId)
-      .select('id', 'name', 'minutes');
+      .select('id', 'name', 'minutes')
+      .orderBy('minutes', 'asc');
     return difficulties;
   }
 }

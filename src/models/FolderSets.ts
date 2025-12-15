@@ -4,6 +4,7 @@ import BaseModel from './BaseModel'
 export interface IFolderSet {
   id: string
   userId: string
+  icon: string | null
   title: string
   description: string
   numberOfStudySets?: number
@@ -13,6 +14,7 @@ export interface IFolderSet {
 export default class FolderSets extends BaseModel implements IFolderSet {
   id!: string
   userId!: string
+  icon!: string | null
   title!: string
   description!: string
   numberOfStudySets?: number

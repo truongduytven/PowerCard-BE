@@ -87,7 +87,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('difficulties', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'))
     table.uuid('user_learn_id').notNullable()
-    table.string('name', 50).notNullable().unique()
+    table.string('name', 50).notNullable()
     table.integer('minutes').notNullable()
 
     table.foreign('user_learn_id').references('id').inTable('user_learns').onDelete('CASCADE')
@@ -98,6 +98,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('folder_sets', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'))
     table.uuid('user_id').notNullable()
+    table.string('icon', 100).nullable()
     table.string('title', 255).notNullable()
     table.text('description').notNullable()
     table.integer('number_of_study_sets').defaultTo(0)
@@ -170,16 +171,15 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  // Drop tables in reverse order of dependencies
   await knex.schema.dropTableIfExists('user_logs')
   await knex.schema.dropTableIfExists('test_flashcards')
   await knex.schema.dropTableIfExists('user_tests')
   await knex.schema.dropTableIfExists('learn_flashcards')
+  await knex.schema.dropTableIfExists('difficulties')
   await knex.schema.dropTableIfExists('user_learns')
   await knex.schema.dropTableIfExists('reviews')
   await knex.schema.dropTableIfExists('folder_study_sets')
   await knex.schema.dropTableIfExists('folder_sets')
-  await knex.schema.dropTableIfExists('difficulties')
   await knex.schema.dropTableIfExists('flashcards')
   await knex.schema.dropTableIfExists('media')
   await knex.schema.dropTableIfExists('study_sets')

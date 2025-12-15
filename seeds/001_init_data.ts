@@ -22,12 +22,6 @@ export async function seed(knex: Knex): Promise<void> {
 
   const hashedPassword = await bcrypt.hash('123456', 10)
 
-  // Generate UUIDs for difficulties
-  const difficultyEasyId = uuidv4()
-  const difficultyMediumId = uuidv4()
-  const difficultyHardId = uuidv4()
-  const difficultyVeryHardId = uuidv4()
-
   // Generate UUIDs for users
   const userId1 = uuidv4()
   const userId2 = uuidv4()
@@ -323,6 +317,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: folderSetId1,
       user_id: userId1,
+      icon: null,
       title: 'My English Collection',
       description: 'Collection of English study sets',
       number_of_study_sets: 1,
@@ -331,6 +326,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: folderSetId2,
       user_id: userId1,
+      icon: null,
       title: 'Programming Basics',
       description: 'Fundamental programming concepts',
       number_of_study_sets: 1,
@@ -369,86 +365,6 @@ export async function seed(knex: Knex): Promise<void> {
       study_set_id: studySetId2,
       rating: 4,
       comment: 'Good content, but could use more examples.',
-    },
-  ])
-
-  // Generate UUIDs for user_learns
-  const userLearnId1 = uuidv4()
-  const userLearnId2 = uuidv4()
-
-  // Insert user_learns
-  await knex('user_learns').insert([
-    {
-      id: userLearnId1,
-      user_id: userId1,
-      study_set_id: studySetId1,
-      processing: 50,
-      status: 'in_progress',
-    },
-    {
-      id: userLearnId2,
-      user_id: userId2,
-      study_set_id: studySetId2,
-      processing: 75,
-      status: 'in_progress',
-    },
-  ])
-
-    await knex('difficulties').insert([
-    {
-      id: difficultyEasyId,
-      user_learn_id: userLearnId1,
-      name: 'Easy',
-      minutes: 1440, // 1 day
-    },
-    {
-      id: difficultyMediumId,
-      user_learn_id: userLearnId1,
-      name: 'Medium',
-      minutes: 720, // 12 hours
-    },
-    {
-      id: difficultyHardId,
-      user_learn_id: userLearnId1,
-      name: 'Hard',
-      minutes: 360, // 6 hours
-    },
-    {
-      id: difficultyVeryHardId,
-      user_learn_id: userLearnId1,
-      name: 'Very Hard',
-      minutes: 60, // 1 hour
-    },
-  ])
-
-  // Insert learn_flashcards
-  await knex('learn_flashcards').insert([
-    {
-      id: uuidv4(),
-      user_learn_id: userLearnId1,
-      flashcard_id: flashcardId1,
-      is_learned: true,
-      difficulty_id: difficultyEasyId,
-      next_review_at: knex.raw("NOW() + INTERVAL '1 day'"),
-      last_reviewed_at: knex.fn.now(),
-    },
-    {
-      id: uuidv4(),
-      user_learn_id: userLearnId1,
-      flashcard_id: flashcardId2,
-      is_learned: false,
-      difficulty_id: difficultyMediumId,
-      next_review_at: knex.raw("NOW() + INTERVAL '12 hours'"),
-      last_reviewed_at: knex.fn.now(),
-    },
-    {
-      id: uuidv4(),
-      user_learn_id: userLearnId2,
-      flashcard_id: flashcardId4,
-      is_learned: true,
-      difficulty_id: difficultyEasyId,
-      next_review_at: knex.raw("NOW() + INTERVAL '1 day'"),
-      last_reviewed_at: knex.fn.now(),
     },
   ])
 

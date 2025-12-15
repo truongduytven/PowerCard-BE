@@ -70,6 +70,6 @@ router.post('/config', difficultyController.configureDifficulty);
  *       500:
  *         description: Đã xảy ra lỗi máy chủ
  */
-router.get('/')
+router.get('/', difficultyController.getDifficultyConfig);
 
 export default router;
