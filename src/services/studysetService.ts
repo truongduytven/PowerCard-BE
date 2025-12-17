@@ -5,11 +5,15 @@ import Media from "../models/Media";
 import knex from "../configs/db";
 import interactionService from "./interactionService";
 import StudySetStats from "../models/StudySetStats";
+import FolderSets from "../models/FolderSets";
+import FolderStudySets from "../models/FolderStudySets";
 
 interface CreateStudySetBody {
   title: string;
   description: string;
   topicId: string;
+  icon: string | null;
+  folderSetId: string | null;
   isPublic: boolean;
   flashcards: {
     mediaId: string | null;
@@ -209,12 +213,29 @@ class StudySetService {
       userId,
       title: body.title,
       description: body.description,
+      icon: body.icon || null,
       topicId: finalTopicId,
       isPublic: body.isPublic,
       numberOfFlashcards: body.flashcards.length,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    if (body.folderSetId) {
+      const checkFolderSet = await FolderSets.query()
+          .where("id", body.folderSetId)
+          .andWhere("userId", userId)
+          .increment("numberOfStudySets", 1)
+          .first();
+
+      if(checkFolderSet) {
+        await FolderStudySets.query().insert({
+          folderSetId: body.folderSetId,
+          studySetId: newStudySet.id,
+          status: "active",
+        });
+      }
+    }
 
     // Create stats entry for the new study set
     await StudySetStats.query().insert({
@@ -245,7 +266,12 @@ class StudySetService {
           if (media && !media.name) {
             mediaUpdate = Media.query()
               .findById(flashcard.mediaId)
-              .patch({ name: flashcard.term });
+              .patch({ name: flashcard.term })
+              .modify((e) => {
+                if(body.isPublic) {
+                  e.patch({ isPublic: true });
+                }
+              });
           }
         }
         await Promise.all([flashcardInsert, mediaUpdate]);
@@ -297,6 +323,7 @@ class StudySetService {
       await StudySets.query(trx).patchAndFetchById(id, {
         title: body.title || studySet.title,
         description: body.description || studySet.description,
+        icon: body.icon !== undefined ? body.icon : studySet.icon,
         topicId: finalTopicId,
         isPublic: body.isPublic !== undefined ? body.isPublic : studySet.isPublic,
         numberOfFlashcards: body.flashcards?.length || studySet.numberOfFlashcards,
@@ -347,7 +374,14 @@ class StudySetService {
               if (media && !media.name) {
                 await Media.query(trx)
                   .findById(flashcard.mediaId)
-                  .patch({ name: flashcard.term });
+                  .patch({ name: flashcard.term })
+                  .modify((e) => {
+                    if(body.isPublic) {
+                      e.patch({ isPublic: true });
+                    } else {
+                      e.patch({ isPublic: false });
+                    }
+                  });
               }
             }
           })
@@ -366,10 +400,30 @@ class StudySetService {
       throw { status: 404, message: "Không tìm thấy bộ học tập" };
     }
 
-    await StudySets.query()
-      .where("id", id)
-      .andWhere("userId", userId)
-      .patch({ status: "inactive" });
+    const flashcards = await Flashcards.query()
+      .where("studySetId", id)
+      .select('id', 'mediaId');
+
+    const mediaIds = flashcards
+      .map(f => f.mediaId)
+      .filter(Boolean) as string[];
+
+    await Promise.all([
+      StudySets.query()
+        .where("id", id)
+        .andWhere("userId", userId)
+        .patch({ status: "inactive" }),
+      
+      Flashcards.query()
+        .where("studySetId", id)
+        .patch({ status: "inactive" }),
+      
+      mediaIds.length > 0 
+        ? Media.query()
+            .whereIn("id", mediaIds)
+            .patch({ status: "inactive" })
+        : Promise.resolve()
+    ]);
   }
 }
 

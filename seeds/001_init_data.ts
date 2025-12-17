@@ -164,6 +164,7 @@ export async function seed(knex: Knex): Promise<void> {
       name: 'Sample Image 1',
       image_url: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea',
       image_id: 'unsplash_001',
+      is_public: true,
       status: 'active',
     },
     {
@@ -171,6 +172,7 @@ export async function seed(knex: Knex): Promise<void> {
       name: 'Sample Image 2',
       image_url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97',
       image_id: 'unsplash_002',
+      is_public: true,
       status: 'active',
     },
   ])
@@ -538,14 +540,61 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ])
 
-  // Insert user_logs
+  // Insert user_learns cho john@example.com với 2 study sets
+  const userLearnId1 = uuidv4()
+  const userLearnId2 = uuidv4()
+
+  await knex('user_learns').insert([
+    {
+      id: userLearnId1,
+      userId: userId1,
+      studySetId: studySetId1, // English Vocabulary
+      processing: 2,
+      status: 'active',
+    },
+    {
+      id: userLearnId2,
+      userId: userId1,
+      studySetId: studySetId2, // JavaScript Fundamentals
+      processing: 1,
+      status: 'active',
+    },
+  ])
+
+  // Insert difficulties (phải có user_learn_id)
+  const difficultyEasy = uuidv4()
+  const difficultyMedium = uuidv4()
+  const difficultyHard = uuidv4()
+
+  await knex('difficulties').insert([
+    {
+      id: difficultyEasy,
+      user_learn_id: userLearnId1,
+      name: 'Easy',
+      minutes: 10,
+    },
+    {
+      id: difficultyMedium,
+      user_learn_id: userLearnId1,
+      name: 'Medium',
+      minutes: 5,
+    },
+    {
+      id: difficultyHard,
+      user_learn_id: userLearnId2,
+      name: 'Hard',
+      minutes: 2,
+    },
+  ])
+
+  // Insert user_logs - mỗi user chỉ có 1 record (unique constraint)
   await knex('user_logs').insert([
     {
       id: uuidv4(),
       user_id: userId1,
-      record_streaks: 5,
-      longest_streaks: 12,
-      last_login_at: knex.raw("NOW() - INTERVAL '1 day'"),
+      record_streaks: 7,
+      longest_streaks: 15,
+      last_login_at: knex.raw("NOW()"),
     },
     {
       id: uuidv4(),
@@ -560,6 +609,88 @@ export async function seed(knex: Knex): Promise<void> {
       record_streaks: 1,
       longest_streaks: 15,
       last_login_at: knex.raw("NOW() - INTERVAL '3 days'"),
+    },
+  ])
+
+  // Insert learn_flashcards với dữ liệu học tập đa dạng qua nhiều ngày
+  // Mỗi flashcard chỉ xuất hiện 1 lần trong learn_flashcards (unique constraint)
+  await knex('learn_flashcards').insert([
+    // Study Set 1: English Vocabulary - 3 flashcards với thời gian học đa dạng
+    // Flashcard 1 - studied hôm nay lúc 9AM, mastered (Easy)
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId1,
+      flashcard_id: flashcardId1,
+      difficulty_id: difficultyEasy,
+      next_review_at: knex.raw("NOW() + INTERVAL '7 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW()) + INTERVAL '9 hours'"),
+    },
+    // Flashcard 2 - studied hôm qua lúc 8PM, Medium difficulty
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId1,
+      flashcard_id: flashcardId2,
+      difficulty_id: difficultyMedium,
+      next_review_at: knex.raw("NOW() + INTERVAL '3 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '1 day') + INTERVAL '20 hours'"),
+    },
+    // Flashcard 3 - studied 2 ngày trước lúc 2PM, Easy
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId1,
+      flashcard_id: flashcardId3,
+      difficulty_id: difficultyEasy,
+      next_review_at: knex.raw("NOW() + INTERVAL '7 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '2 days') + INTERVAL '14 hours'"),
+    },
+
+    // Study Set 2: JavaScript Fundamentals - 3 flashcards
+    // Flashcard 4 - studied hôm nay lúc 10AM, Hard
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId2,
+      flashcard_id: flashcardId4,
+      difficulty_id: difficultyHard,
+      next_review_at: knex.raw("NOW() + INTERVAL '1 day'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW()) + INTERVAL '10 hours'"),
+    },
+    // Flashcard 5 - studied 3 ngày trước lúc 3PM, Medium
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId2,
+      flashcard_id: flashcardId5,
+      difficulty_id: difficultyMedium,
+      next_review_at: knex.raw("NOW() + INTERVAL '3 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '3 days') + INTERVAL '15 hours'"),
+    },
+    // Flashcard 6 - studied 4 ngày trước lúc 9PM, Easy
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId2,
+      flashcard_id: flashcardId6,
+      difficulty_id: difficultyEasy,
+      next_review_at: knex.raw("NOW() + INTERVAL '7 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '4 days') + INTERVAL '21 hours'"),
+    },
+
+    // Study Set 3: Thêm flashcards từ Mathematics - Algebra (userId2 owns it, nhưng userId1 học)
+    // Flashcard 7 - studied 5 ngày trước lúc 7AM, Medium
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId1,
+      flashcard_id: flashcardId7,
+      difficulty_id: difficultyMedium,
+      next_review_at: knex.raw("NOW() + INTERVAL '3 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '5 days') + INTERVAL '7 hours'"),
+    },
+    // Flashcard 8 - studied 6 ngày trước lúc 11AM, Easy
+    {
+      id: uuidv4(),
+      user_learn_id: userLearnId1,
+      flashcard_id: flashcardId8,
+      difficulty_id: difficultyEasy,
+      next_review_at: knex.raw("NOW() + INTERVAL '7 days'"),
+      last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '6 days') + INTERVAL '11 hours'"),
     },
   ])
 }

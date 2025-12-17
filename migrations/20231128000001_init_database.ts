@@ -48,6 +48,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('name', 255).nullable()
     table.string('image_url', 500).nullable()
     table.string('image_id', 255).nullable()
+    table.boolean('is_public').notNullable().defaultTo(false)
     table.string('status', 50).notNullable().defaultTo('active')
   })
 

@@ -85,7 +85,11 @@ router.get("/:id", studysetController.getStudySetById);
  *                 type: string
  *               description:
  *                 type: string
+ *               icon:
+ *                 type: string
  *               topicId:
+ *                 type: string
+ *               folderSetId:
  *                 type: string
  *               isPublic:
  *                 type: boolean
@@ -139,6 +143,10 @@ router.post("/", studysetController.createStudySet);
  *                  type: string
  *                description:
  *                  type: string
+ *                folderSetId:
+ *                  type: string
+ *                icon:
+ *                  type: string
  *                topicId:
  *                  type: string
  *                isPublic:
@@ -148,6 +156,8 @@ router.post("/", studysetController.createStudySet);
  *                  items:
  *                    type: object
  *                    properties:
+ *                      id:
+ *                        type: string
  *                      mediaId:
  *                        type: string
  *                      position:
@@ -155,6 +165,8 @@ router.post("/", studysetController.createStudySet);
  *                      term:
  *                        type: string
  *                      definition:
+ *                        type: string
+ *                      status:
  *                        type: string
  *        responses:
  *          200:

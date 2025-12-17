@@ -51,7 +51,7 @@ class FolderSetService {
     };
   }
 
-  async createFolderSet(userId: string, title: string, description: string, studySets: string[]) {
+  async createFolderSet(userId: string, title: string, description: string, icon: string | null, studySets: string[]) {
     if (!title || !description || !Array.isArray(studySets)) {
       throw { status: 400, message: "Yêu cầu không hợp lệ" };
     }
@@ -59,6 +59,7 @@ class FolderSetService {
     const newFolderSet = await FolderSets.query().insert({
       userId,
       title,
+      icon,
       description,
       numberOfStudySets: studySets.length || 0,
       status: "active",

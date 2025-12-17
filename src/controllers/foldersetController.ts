@@ -31,10 +31,10 @@ class FoldersetController {
 
   async createFolderSet(req: Request, res: Response) {
     try {
-      const { title, description, studySets } = req.body;
+      const { title, description, icon, studySets } = req.body;
       const userId = (req as any).user.id;
 
-      const newFolderSet = await foldersetService.createFolderSet(userId, title, description, studySets);
+      const newFolderSet = await foldersetService.createFolderSet(userId, title, description, icon, studySets);
       res.status(201).json({ message: "Tạo bộ thư mục thành công", data: newFolderSet });
     } catch (error: any) {
       console.error("Error creating folder set:", error);

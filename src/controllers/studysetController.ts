@@ -90,8 +90,6 @@ class StudysetController {
     }
   }
 
-  // ===== INTERACTION ENDPOINTS =====
-  
   async addFavorite(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -138,8 +136,6 @@ class StudysetController {
     }
   }
 
-  // ===== TEST ENDPOINT =====
-  
   async generateTest(req: Request, res: Response) {
     try {
       const { id } = req.params;
