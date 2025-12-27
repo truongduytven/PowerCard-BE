@@ -65,6 +65,7 @@ class StudySetService {
       .innerJoin("users", "ss.userId", "users.id")
       .innerJoin("topics", "ss.topicId", "topics.id")
       .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+      .leftJoin("study_set_stats as stats", "ss.id", "stats.study_set_id")
       .groupBy(
         "ss.id",
         "ss.title",
@@ -75,8 +76,14 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
-        "ss.updated_at"
+        "ss.updated_at",
+        "stats.views",
+        "stats.favorites",
+        "stats.clones",
+        "stats.shares"
       )
       .select(
         "ss.id",
@@ -88,10 +95,16 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
         "ss.updated_at",
         knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
-        knex.raw("COUNT(r.id)::int as number_of_reviews")
+        knex.raw("COUNT(r.id)::int as number_of_reviews"),
+        knex.raw("COALESCE(stats.views, 0) as views"),
+        knex.raw("COALESCE(stats.favorites, 0) as favorites"),
+        knex.raw("COALESCE(stats.clones, 0) as clones"),
+        knex.raw("COALESCE(stats.shares, 0) as shares")
       );
 
     return studySets;
@@ -108,6 +121,7 @@ class StudySetService {
       .andWhere("ss.status", "active")
       .groupBy(
         "ss.id",
+        "ss.userId",
         "ss.title",
         "ss.description",
         "topics.name",
@@ -115,6 +129,8 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
         "ss.updated_at",
         "stats.views",
@@ -124,6 +140,10 @@ class StudySetService {
       )
       .select(
         "ss.id",
+        knex.raw(
+          "CASE WHEN ss.user_id = ? THEN true ELSE false END as is_author",
+          [userId]
+        ),
         "ss.title",
         "ss.description",
         "topics.name as topic_name",
@@ -131,6 +151,8 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
         "ss.updated_at",
         knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
@@ -217,6 +239,9 @@ class StudySetService {
       topicId: finalTopicId,
       isPublic: body.isPublic,
       numberOfFlashcards: body.flashcards.length,
+      fromStudySetId: null,
+      type: "ORIGINAL",
+      status: "active",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -424,6 +449,87 @@ class StudySetService {
             .patch({ status: "inactive" })
         : Promise.resolve()
     ]);
+  }
+
+  async copyStudySet(studySetId: string, userId: string, type: "CLONE" | "DUPLICATE") {
+    const existingStudySet = await StudySets.query()
+      .where("id", studySetId)
+      .andWhere("status", "active")
+      .first();
+
+    if (!existingStudySet) {
+      throw { status: 404, message: "Không tìm thấy bộ học tập để sao chép" };
+    }
+
+    if (existingStudySet.userId !== userId && type === "DUPLICATE") {
+      throw { status: 403, message: "Bạn không có quyền nhân bản bộ học tập này" };
+    }
+
+    if (existingStudySet.userId === userId && type === "CLONE") {
+      throw { status: 400, message: "Bạn không thể sao chép bộ học tập của chính mình" };
+    }
+
+    if (existingStudySet.isPublic === false && type === "CLONE") {
+      throw { status: 403, message: "Bạn không có quyền sao chép bộ học tập riêng tư" };
+    }
+    
+    let copyStudySet = null;
+
+    await StudySets.transaction(async (trx) => {
+      const clonedStudySet = await StudySets.query(trx).insert({
+        userId,
+        title: `${existingStudySet.title} (${type === "CLONE" ? "Sao chép" : "Nhân bản"})`,
+        description: existingStudySet.description,
+        icon: existingStudySet.icon,
+        topicId: existingStudySet.topicId,
+        isPublic: false,
+        numberOfFlashcards: existingStudySet.numberOfFlashcards,
+        fromStudySetId: existingStudySet.id,
+        type: type,
+        status: "active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      copyStudySet = clonedStudySet;
+
+      const flashcards = await Flashcards.query(trx)
+        .where("studySetId", existingStudySet.id);
+
+      await Promise.all(
+        flashcards.map(async (flashcard) => {
+          await Flashcards.query(trx).insert({
+            studySetId: clonedStudySet.id,
+            mediaId: flashcard.mediaId,
+            position: flashcard.position,
+            term: flashcard.term,
+            definition: flashcard.definition,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        })
+      );
+
+      // Create stats entry for the cloned study set
+      await StudySetStats.query(trx).insert({
+        studySetId: clonedStudySet.id,
+        views: 0,
+        favorites: 0,
+        clones: 0,
+        shares: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // Increment clone count for the original study set
+      await StudySetStats.query(trx)
+        .where("studySetId", existingStudySet.id)
+        .increment("clones", 1);
+
+      return clonedStudySet;
+    });
+
+    return copyStudySet;
   }
 }
 

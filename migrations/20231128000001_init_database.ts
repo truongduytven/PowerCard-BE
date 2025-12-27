@@ -32,6 +32,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('icon', 100).nullable()
     table.boolean('is_public').defaultTo(false)
     table.integer('number_of_flashcards').defaultTo(0)
+    table.uuid('from_study_set_id').nullable()
+    table.string('type', 50).notNullable().defaultTo('ORIGINAL')
     table.string('status', 50).notNullable().defaultTo('active')
     table.timestamp('created_at').defaultTo(knex.fn.now())
     table.timestamp('updated_at').defaultTo(knex.fn.now())

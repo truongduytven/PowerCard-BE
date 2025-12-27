@@ -212,6 +212,66 @@ router.delete('/:id', studysetController.deleteStudySet);
 
 /**
  * @openapi
+ * /studyset/clone/{id}:
+ *    post:
+ *     summary: Sao chép bộ học tập
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Sao chép bộ học tập thành công
+ *       400:
+ *         description: Yêu cầu không hợp lệ
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền sao chép bộ học tập này
+ *       404:
+ *         description: Không tìm thấy bộ học tập
+ *       500:
+ *         description: Lỗi server
+ */
+router.post('/clone/:id', studysetController.cloneStudySet);
+
+/**
+ * @openapi
+ * /studyset/duplicate/{id}:
+ *   post:
+ *    summary: Nhân bản bộ học tập
+ *    tags: [StudySets]
+ *    security:
+ *      - bearerAuth: []
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        required: true
+ *        schema:
+ *          type: string
+ *    responses:
+ *      201:
+ *        description: Nhân bản bộ học tập thành công
+ *      400:
+ *        description: Yêu cầu không hợp lệ
+ *      401:
+ *        description: Chưa xác thực
+ *      403:
+ *        description: Không có quyền nhân bản bộ học tập này
+ *      404:
+ *        description: Không tìm thấy bộ học tập
+ *      500:
+ *        description: Lỗi server
+ */
+router.post('/duplicate/:id', studysetController.duplicateStudySet);
+
+/**
+ * @openapi
  * /studyset/{id}/favorite:
  *   post:
  *     summary: Thêm bộ học tập vào yêu thích
