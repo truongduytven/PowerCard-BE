@@ -161,7 +161,6 @@ class StudysetController {
       const userId = (req as any).user.id;
 
       const clonedStudySet = await studysetService.copyStudySet(id, userId, "CLONE");
-      console.log("Cloned Study Set:", clonedStudySet);
       res.status(201).json({ message: "Sao chép bộ học tập thành công", data: clonedStudySet });
     } catch (error: any) {
       console.error("Error cloning study set:", error);

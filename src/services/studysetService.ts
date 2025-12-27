@@ -55,10 +55,11 @@ class StudySetService {
         if (isLearning) {
           if (isLearning === "true") {
             queryBuilder
-              .innerJoin("user_learns as ul", "ss.id", "ul.study_set_id")
-              .where("ul.user_id", userId)
-              .andWhere("ul.status", "learning")
-              .select("ul.processing as processing");
+              .innerJoin("user_learns as ul", function() {
+                this.on("ss.id", "=", "ul.studySetId")
+                  .andOn("ul.userId", "=", knex.raw("?", [userId]))
+                  .andOn("ul.status", "=", knex.raw("?", ["active"]));
+              });
           }
         }
       })
@@ -66,6 +67,20 @@ class StudySetService {
       .innerJoin("topics", "ss.topicId", "topics.id")
       .leftJoin("reviews as r", "r.study_set_id", "ss.id")
       .leftJoin("study_set_stats as stats", "ss.id", "stats.study_set_id")
+      .leftJoin(
+        knex.raw(`(
+          SELECT 
+            ul2.study_set_id,
+            COUNT(DISTINCT ul2.user_id)::int as num_user_learn,
+            MAX(lf.last_reviewed_at) as last_study_at
+          FROM user_learns ul2
+          LEFT JOIN learn_flashcards lf ON ul2.id = lf.user_learn_id
+          WHERE ul2.status = 'active'
+          GROUP BY ul2.study_set_id
+        ) as ul_stats`),
+        'ss.id',
+        'ul_stats.study_set_id'
+      )
       .groupBy(
         "ss.id",
         "ss.title",
@@ -83,8 +98,16 @@ class StudySetService {
         "stats.views",
         "stats.favorites",
         "stats.clones",
-        "stats.shares"
+        "stats.shares",
+        "ul_stats.num_user_learn",
+        "ul_stats.last_study_at"
       )
+      .modify((queryBuilder) => {
+        if (isLearning === "true") {
+          queryBuilder.select("ul.processing as processing");
+          queryBuilder.groupBy("ul.processing");
+        }
+      })
       .select(
         "ss.id",
         "ss.icon",
@@ -104,7 +127,9 @@ class StudySetService {
         knex.raw("COALESCE(stats.views, 0) as views"),
         knex.raw("COALESCE(stats.favorites, 0) as favorites"),
         knex.raw("COALESCE(stats.clones, 0) as clones"),
-        knex.raw("COALESCE(stats.shares, 0) as shares")
+        knex.raw("COALESCE(stats.shares, 0) as shares"),
+        knex.raw("COALESCE(ul_stats.num_user_learn, 0) as num_user_learn"),
+        knex.raw("ul_stats.last_study_at as last_study_at")
       );
 
     return studySets;
