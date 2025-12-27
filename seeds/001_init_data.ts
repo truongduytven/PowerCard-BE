@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid'
 export async function seed(knex: Knex): Promise<void> {
   // Deletes ALL existing entries
   // Note: test_flashcards and user_tests tables no longer exist (deprecated)
+  await knex('flashcard_marks').del()
   await knex('study_set_interactions').del()
   await knex('study_set_stats').del()
   await knex('user_logs').del()
@@ -699,6 +700,46 @@ export async function seed(knex: Knex): Promise<void> {
       difficulty_id: difficultyEasy,
       next_review_at: knex.raw("NOW() + INTERVAL '7 days'"),
       last_reviewed_at: knex.raw("DATE_TRUNC('day', NOW() - INTERVAL '6 days') + INTERVAL '11 hours'"),
+    },
+  ])
+
+  // Insert flashcard_marks data - john@example.com marked some flashcards during review
+  await knex('flashcard_marks').insert([
+    // Mark flashcard 1 - marked 2 days ago
+    {
+      id: uuidv4(),
+      user_id: userId1,
+      flashcard_id: flashcardId1,
+      is_marked: true,
+      marked_at: knex.raw("NOW() - INTERVAL '2 days'"),
+      updated_at: knex.raw("NOW() - INTERVAL '2 days'"),
+    },
+    // Mark flashcard 3 - marked yesterday
+    {
+      id: uuidv4(),
+      user_id: userId1,
+      flashcard_id: flashcardId3,
+      is_marked: true,
+      marked_at: knex.raw("NOW() - INTERVAL '1 day'"),
+      updated_at: knex.raw("NOW() - INTERVAL '1 day'"),
+    },
+    // Mark flashcard 5 - marked today
+    {
+      id: uuidv4(),
+      user_id: userId1,
+      flashcard_id: flashcardId5,
+      is_marked: true,
+      marked_at: knex.raw("NOW()"),
+      updated_at: knex.raw("NOW()"),
+    },
+    // Mark flashcard 7 - marked 3 days ago
+    {
+      id: uuidv4(),
+      user_id: userId1,
+      flashcard_id: flashcardId7,
+      is_marked: true,
+      marked_at: knex.raw("NOW() - INTERVAL '3 days'"),
+      updated_at: knex.raw("NOW() - INTERVAL '3 days'"),
     },
   ])
 }
