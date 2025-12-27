@@ -90,8 +90,6 @@ class StudysetController {
     }
   }
 
-  // ===== INTERACTION ENDPOINTS =====
-  
   async addFavorite(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -138,8 +136,6 @@ class StudysetController {
     }
   }
 
-  // ===== TEST ENDPOINT =====
-  
   async generateTest(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -152,6 +148,38 @@ class StudysetController {
       });
     } catch (error: any) {
       console.error("Error generating test:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
+  async cloneStudySet(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.id;
+
+      const clonedStudySet = await studysetService.copyStudySet(id, userId, "CLONE");
+      res.status(201).json({ message: "Sao chép bộ học tập thành công", data: clonedStudySet });
+    } catch (error: any) {
+      console.error("Error cloning study set:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
+  async duplicateStudySet(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.id;
+
+      const duplicatedStudySet = await studysetService.copyStudySet(id, userId, "DUPLICATE");
+      res.status(201).json({ message: "Nhân bản bộ học tập thành công", data: duplicatedStudySet });
+    } catch (error: any) {
+      console.error("Error duplicating study set:", error);
       if (error.status) {
         return res.status(error.status).json({ message: error.message });
       }

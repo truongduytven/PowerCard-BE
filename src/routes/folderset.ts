@@ -75,6 +75,8 @@ router.get('/:id', foldersetController.getFolderSetById);
  *                type: string
  *              description:
  *                type: string
+ *              icon:
+ *                type: string
  *              studySets:
  *                type: array
  *                items:

@@ -8,7 +8,27 @@ dotenvConfig({ path: path.resolve(__dirname, '../../.env') })
 const knexConfig: { [key: string]: Knex.Config } = {
   development: {
     client: 'pg',
-    connection: process.env.DATABASE_URL || 'postgres://user:password@localhost:5432/database',
+    connection: {
+      connectionString: process.env.DATABASE_URL || 'postgres://user:password@localhost:5432/database',
+      ssl: { rejectUnauthorized: false }
+    },
+    migrations: {
+      extension: 'ts',
+      directory: '../../migrations'
+    },
+    seeds: {
+      extension: 'ts',
+      directory: '../../seeds'
+    },
+    ...knexSnakeCaseMappers(),
+    searchPath: ['public']
+  },
+  production: {
+    client: 'pg',
+    connection: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    },
     migrations: {
       extension: 'ts',
       directory: '../../migrations'

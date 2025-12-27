@@ -38,7 +38,9 @@ class MediaService {
   }
 
   async getMediaList(search?: string) {
-    let query = Media.query().where('status', 'active');
+    let query = Media.query()
+                     .where('status', 'active')
+                     .andWhere('isPublic', true);
     
     if (search) {
       query = query.andWhere('name', 'like', `%${search}%`);

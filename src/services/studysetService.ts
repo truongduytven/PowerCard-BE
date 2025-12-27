@@ -5,11 +5,15 @@ import Media from "../models/Media";
 import knex from "../configs/db";
 import interactionService from "./interactionService";
 import StudySetStats from "../models/StudySetStats";
+import FolderSets from "../models/FolderSets";
+import FolderStudySets from "../models/FolderStudySets";
 
 interface CreateStudySetBody {
   title: string;
   description: string;
   topicId: string;
+  icon: string | null;
+  folderSetId: string | null;
   isPublic: boolean;
   flashcards: {
     mediaId: string | null;
@@ -51,30 +55,62 @@ class StudySetService {
         if (isLearning) {
           if (isLearning === "true") {
             queryBuilder
-              .innerJoin("user_learns as ul", "ss.id", "ul.study_set_id")
-              .where("ul.user_id", userId)
-              .andWhere("ul.status", "learning")
-              .select("ul.processing as processing");
+              .innerJoin("user_learns as ul", function() {
+                this.on("ss.id", "=", "ul.studySetId")
+                  .andOn("ul.userId", "=", knex.raw("?", [userId]))
+                  .andOn("ul.status", "=", knex.raw("?", ["active"]));
+              });
           }
         }
       })
       .innerJoin("users", "ss.userId", "users.id")
       .innerJoin("topics", "ss.topicId", "topics.id")
       .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+      .leftJoin("study_set_stats as stats", "ss.id", "stats.study_set_id")
+      .leftJoin(
+        knex.raw(`(
+          SELECT 
+            ul2.study_set_id,
+            COUNT(DISTINCT ul2.user_id)::int as num_user_learn,
+            MAX(lf.last_reviewed_at) as last_study_at
+          FROM user_learns ul2
+          LEFT JOIN learn_flashcards lf ON ul2.id = lf.user_learn_id
+          WHERE ul2.status = 'active'
+          GROUP BY ul2.study_set_id
+        ) as ul_stats`),
+        'ss.id',
+        'ul_stats.study_set_id'
+      )
       .groupBy(
         "ss.id",
         "ss.title",
+        "ss.icon",
         "ss.description",
         "topics.name",
         "users.username",
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
-        "ss.updated_at"
+        "ss.updated_at",
+        "stats.views",
+        "stats.favorites",
+        "stats.clones",
+        "stats.shares",
+        "ul_stats.num_user_learn",
+        "ul_stats.last_study_at"
       )
+      .modify((queryBuilder) => {
+        if (isLearning === "true") {
+          queryBuilder.select("ul.processing as processing");
+          queryBuilder.groupBy("ul.processing");
+        }
+      })
       .select(
         "ss.id",
+        "ss.icon",
         "ss.title",
         "ss.description",
         "topics.name as topic_name",
@@ -82,10 +118,18 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
         "ss.updated_at",
         knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
-        knex.raw("COUNT(r.id)::int as number_of_reviews")
+        knex.raw("COUNT(r.id)::int as number_of_reviews"),
+        knex.raw("COALESCE(stats.views, 0) as views"),
+        knex.raw("COALESCE(stats.favorites, 0) as favorites"),
+        knex.raw("COALESCE(stats.clones, 0) as clones"),
+        knex.raw("COALESCE(stats.shares, 0) as shares"),
+        knex.raw("COALESCE(ul_stats.num_user_learn, 0) as num_user_learn"),
+        knex.raw("ul_stats.last_study_at as last_study_at")
       );
 
     return studySets;
@@ -102,6 +146,7 @@ class StudySetService {
       .andWhere("ss.status", "active")
       .groupBy(
         "ss.id",
+        "ss.userId",
         "ss.title",
         "ss.description",
         "topics.name",
@@ -109,6 +154,8 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
         "ss.updated_at",
         "stats.views",
@@ -118,6 +165,10 @@ class StudySetService {
       )
       .select(
         "ss.id",
+        knex.raw(
+          "CASE WHEN ss.user_id = ? THEN true ELSE false END as is_author",
+          [userId]
+        ),
         "ss.title",
         "ss.description",
         "topics.name as topic_name",
@@ -125,6 +176,8 @@ class StudySetService {
         "users.avatar_url",
         "ss.is_public",
         "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
         "ss.created_at",
         "ss.updated_at",
         knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
@@ -207,12 +260,32 @@ class StudySetService {
       userId,
       title: body.title,
       description: body.description,
+      icon: body.icon || null,
       topicId: finalTopicId,
       isPublic: body.isPublic,
       numberOfFlashcards: body.flashcards.length,
+      fromStudySetId: null,
+      type: "ORIGINAL",
+      status: "active",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    if (body.folderSetId) {
+      const checkFolderSet = await FolderSets.query()
+          .where("id", body.folderSetId)
+          .andWhere("userId", userId)
+          .increment("numberOfStudySets", 1)
+          .first();
+
+      if(checkFolderSet) {
+        await FolderStudySets.query().insert({
+          folderSetId: body.folderSetId,
+          studySetId: newStudySet.id,
+          status: "active",
+        });
+      }
+    }
 
     // Create stats entry for the new study set
     await StudySetStats.query().insert({
@@ -243,7 +316,12 @@ class StudySetService {
           if (media && !media.name) {
             mediaUpdate = Media.query()
               .findById(flashcard.mediaId)
-              .patch({ name: flashcard.term });
+              .patch({ name: flashcard.term })
+              .modify((e) => {
+                if(body.isPublic) {
+                  e.patch({ isPublic: true });
+                }
+              });
           }
         }
         await Promise.all([flashcardInsert, mediaUpdate]);
@@ -295,6 +373,7 @@ class StudySetService {
       await StudySets.query(trx).patchAndFetchById(id, {
         title: body.title || studySet.title,
         description: body.description || studySet.description,
+        icon: body.icon !== undefined ? body.icon : studySet.icon,
         topicId: finalTopicId,
         isPublic: body.isPublic !== undefined ? body.isPublic : studySet.isPublic,
         numberOfFlashcards: body.flashcards?.length || studySet.numberOfFlashcards,
@@ -345,7 +424,14 @@ class StudySetService {
               if (media && !media.name) {
                 await Media.query(trx)
                   .findById(flashcard.mediaId)
-                  .patch({ name: flashcard.term });
+                  .patch({ name: flashcard.term })
+                  .modify((e) => {
+                    if(body.isPublic) {
+                      e.patch({ isPublic: true });
+                    } else {
+                      e.patch({ isPublic: false });
+                    }
+                  });
               }
             }
           })
@@ -364,10 +450,111 @@ class StudySetService {
       throw { status: 404, message: "Không tìm thấy bộ học tập" };
     }
 
-    await StudySets.query()
-      .where("id", id)
-      .andWhere("userId", userId)
-      .patch({ status: "inactive" });
+    const flashcards = await Flashcards.query()
+      .where("studySetId", id)
+      .select('id', 'mediaId');
+
+    const mediaIds = flashcards
+      .map(f => f.mediaId)
+      .filter(Boolean) as string[];
+
+    await Promise.all([
+      StudySets.query()
+        .where("id", id)
+        .andWhere("userId", userId)
+        .patch({ status: "inactive" }),
+      
+      Flashcards.query()
+        .where("studySetId", id)
+        .patch({ status: "inactive" }),
+      
+      mediaIds.length > 0 
+        ? Media.query()
+            .whereIn("id", mediaIds)
+            .patch({ status: "inactive" })
+        : Promise.resolve()
+    ]);
+  }
+
+  async copyStudySet(studySetId: string, userId: string, type: "CLONE" | "DUPLICATE") {
+    const existingStudySet = await StudySets.query()
+      .where("id", studySetId)
+      .andWhere("status", "active")
+      .first();
+
+    if (!existingStudySet) {
+      throw { status: 404, message: "Không tìm thấy bộ học tập để sao chép" };
+    }
+
+    if (existingStudySet.userId !== userId && type === "DUPLICATE") {
+      throw { status: 403, message: "Bạn không có quyền nhân bản bộ học tập này" };
+    }
+
+    if (existingStudySet.userId === userId && type === "CLONE") {
+      throw { status: 400, message: "Bạn không thể sao chép bộ học tập của chính mình" };
+    }
+
+    if (existingStudySet.isPublic === false && type === "CLONE") {
+      throw { status: 403, message: "Bạn không có quyền sao chép bộ học tập riêng tư" };
+    }
+    
+    let copyStudySet = null;
+
+    await StudySets.transaction(async (trx) => {
+      const clonedStudySet = await StudySets.query(trx).insert({
+        userId,
+        title: `${existingStudySet.title} (${type === "CLONE" ? "Sao chép" : "Nhân bản"})`,
+        description: existingStudySet.description,
+        icon: existingStudySet.icon,
+        topicId: existingStudySet.topicId,
+        isPublic: false,
+        numberOfFlashcards: existingStudySet.numberOfFlashcards,
+        fromStudySetId: existingStudySet.id,
+        type: type,
+        status: "active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      copyStudySet = clonedStudySet;
+
+      const flashcards = await Flashcards.query(trx)
+        .where("studySetId", existingStudySet.id);
+
+      await Promise.all(
+        flashcards.map(async (flashcard) => {
+          await Flashcards.query(trx).insert({
+            studySetId: clonedStudySet.id,
+            mediaId: flashcard.mediaId,
+            position: flashcard.position,
+            term: flashcard.term,
+            definition: flashcard.definition,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        })
+      );
+
+      // Create stats entry for the cloned study set
+      await StudySetStats.query(trx).insert({
+        studySetId: clonedStudySet.id,
+        views: 0,
+        favorites: 0,
+        clones: 0,
+        shares: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // Increment clone count for the original study set
+      await StudySetStats.query(trx)
+        .where("studySetId", existingStudySet.id)
+        .increment("clones", 1);
+
+      return clonedStudySet;
+    });
+
+    return copyStudySet;
   }
 }
 

@@ -85,7 +85,11 @@ router.get("/:id", studysetController.getStudySetById);
  *                 type: string
  *               description:
  *                 type: string
+ *               icon:
+ *                 type: string
  *               topicId:
+ *                 type: string
+ *               folderSetId:
  *                 type: string
  *               isPublic:
  *                 type: boolean
@@ -139,6 +143,10 @@ router.post("/", studysetController.createStudySet);
  *                  type: string
  *                description:
  *                  type: string
+ *                folderSetId:
+ *                  type: string
+ *                icon:
+ *                  type: string
  *                topicId:
  *                  type: string
  *                isPublic:
@@ -148,6 +156,8 @@ router.post("/", studysetController.createStudySet);
  *                  items:
  *                    type: object
  *                    properties:
+ *                      id:
+ *                        type: string
  *                      mediaId:
  *                        type: string
  *                      position:
@@ -155,6 +165,8 @@ router.post("/", studysetController.createStudySet);
  *                      term:
  *                        type: string
  *                      definition:
+ *                        type: string
+ *                      status:
  *                        type: string
  *        responses:
  *          200:
@@ -197,6 +209,66 @@ router.put('/:id', studysetController.updateStudySet);
 router.delete('/:id', studysetController.deleteStudySet);
 
 // ===== INTERACTION ROUTES =====
+
+/**
+ * @openapi
+ * /studyset/clone/{id}:
+ *    post:
+ *     summary: Sao chép bộ học tập
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Sao chép bộ học tập thành công
+ *       400:
+ *         description: Yêu cầu không hợp lệ
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền sao chép bộ học tập này
+ *       404:
+ *         description: Không tìm thấy bộ học tập
+ *       500:
+ *         description: Lỗi server
+ */
+router.post('/clone/:id', studysetController.cloneStudySet);
+
+/**
+ * @openapi
+ * /studyset/duplicate/{id}:
+ *   post:
+ *    summary: Nhân bản bộ học tập
+ *    tags: [StudySets]
+ *    security:
+ *      - bearerAuth: []
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        required: true
+ *        schema:
+ *          type: string
+ *    responses:
+ *      201:
+ *        description: Nhân bản bộ học tập thành công
+ *      400:
+ *        description: Yêu cầu không hợp lệ
+ *      401:
+ *        description: Chưa xác thực
+ *      403:
+ *        description: Không có quyền nhân bản bộ học tập này
+ *      404:
+ *        description: Không tìm thấy bộ học tập
+ *      500:
+ *        description: Lỗi server
+ */
+router.post('/duplicate/:id', studysetController.duplicateStudySet);
 
 /**
  * @openapi

@@ -6,6 +6,7 @@ export interface IMedia {
   name?: string
   imageUrl?: string
   imageId?: string
+  isPublic: boolean
   status: string
 }
 
@@ -14,6 +15,7 @@ export default class Media extends BaseModel implements IMedia {
   name!: string
   imageUrl!: string
   imageId!: string
+  isPublic!: boolean
   status!: string
 
   static tableName = 'media'

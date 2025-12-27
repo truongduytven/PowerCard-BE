@@ -7,9 +7,11 @@ export interface IStudySet {
   title: string
   description: string
   topicId: string
-  icon: string
+  icon: string | null
   isPublic: boolean
   numberOfFlashcards?: number
+  fromStudySetId?: string | null
+  type: string
   status: string
   createdAt: string
   updatedAt: string
@@ -21,9 +23,11 @@ export default class StudySets extends BaseModel implements IStudySet {
   title!: string
   description!: string
   topicId!: string
-  icon!: string
+  icon!: string | null
   isPublic!: boolean
   numberOfFlashcards?: number
+  fromStudySetId?: string | null
+  type!: string
   status!: string
   createdAt!: string
   updatedAt!: string
@@ -93,6 +97,14 @@ export default class StudySets extends BaseModel implements IStudySet {
       join: {
         from: 'study_sets.id',
         to: 'study_set_stats.study_set_id',
+      },
+    },
+    fromStudySet: {
+      relation: Model.BelongsToOneRelation,
+      modelClass: () => require('./StudySets').default,
+      join: {
+        from: 'study_sets.from_study_set_id',
+        to: 'study_sets.id',
       },
     }
   }

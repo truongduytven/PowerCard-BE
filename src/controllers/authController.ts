@@ -1,15 +1,7 @@
 import { Request, Response } from "express";
 import Users from "../models/Users";
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import cloudinary from "../configs/cloudinary";
 import authService from "../services/authService";
-
-const ACCESS_TOKEN_TTL = '24h';
-
-//checkformat email 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 class AuthController {
   async login(req: Request, res: Response) {
     try {
