@@ -93,6 +93,8 @@ router.get("/:id", studysetController.getStudySetById);
  *                 type: string
  *               isPublic:
  *                 type: boolean
+ *               type:
+ *                 type: string
  *               flashcards:
  *                 type: array
  *                 items:
