@@ -15,6 +15,7 @@ interface CreateStudySetBody {
   icon: string | null;
   folderSetId: string | null;
   isPublic: boolean;
+  type: string;
   flashcards: {
     mediaId: string | null;
     position: number;
@@ -229,6 +230,14 @@ class StudySetService {
       throw { status: 400, message: "Yêu cầu không hợp lệ" };
     }
 
+    if (body.type !== "ORIGINAL" && body.type !== "QUIZLET") {
+      throw { status: 400, message: "Loại bộ học tập không hợp lệ" };
+    }
+
+    if (body.type === "QUIZLET" && body.isPublic === true) {
+      throw { status: 400, message: "Bộ học tập từ Quizlet không được phép public" };
+    }
+
     const exitStudySet = await StudySets.query()
       .where("userId", userId)
       .andWhere("title", body.title)
@@ -265,7 +274,7 @@ class StudySetService {
       isPublic: body.isPublic,
       numberOfFlashcards: body.flashcards.length,
       fromStudySetId: null,
-      type: "ORIGINAL",
+      type: body.type,
       status: "active",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -337,6 +346,10 @@ class StudySetService {
 
     if (!studySet) {
       throw { status: 404, message: "Không tìm thấy bộ học tập" };
+    }
+
+    if ((studySet.type === "CLONE" || studySet.type === "QUIZLET") && body.isPublic === true) {
+      throw { status: 400, message: "Bộ học tập không được phép chỉnh sửa thành public" };
     }
 
     if (body.title && body.title !== studySet.title) {
@@ -484,6 +497,10 @@ class StudySetService {
 
     if (!existingStudySet) {
       throw { status: 404, message: "Không tìm thấy bộ học tập để sao chép" };
+    }
+
+    if (existingStudySet.type === "QUIZLET") {
+      throw { status: 400, message: "Không thể sao chép bộ học tập từ Quizlet" };
     }
 
     if (existingStudySet.userId !== userId && type === "DUPLICATE") {
