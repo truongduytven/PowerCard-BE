@@ -348,6 +348,10 @@ class StudySetService {
       throw { status: 404, message: "Không tìm thấy bộ học tập" };
     }
 
+    if ((studySet.type === "CLONE" || studySet.type === "QUIZLET") && body.isPublic === true) {
+      throw { status: 400, message: "Bộ học tập không được phép chỉnh sửa thành public" };
+    }
+
     if (body.title && body.title !== studySet.title) {
       const existingStudySet = await StudySets.query()
         .where("userId", userId)
