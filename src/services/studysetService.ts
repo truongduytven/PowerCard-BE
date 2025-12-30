@@ -136,6 +136,292 @@ class StudySetService {
     return studySets;
   }
 
+  // Lấy studyset mà user tự tạo
+  async getMyStudySets(userId: string) {
+    const studySets = await StudySets.query()
+      .alias("ss")
+      .where("ss.userId", userId)
+      .andWhere("ss.status", "active")
+      .innerJoin("users", "ss.userId", "users.id")
+      .innerJoin("topics", "ss.topicId", "topics.id")
+      .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+      .leftJoin("study_set_stats as stats", "ss.id", "stats.study_set_id")
+      .leftJoin(
+        knex.raw(`(
+          SELECT 
+            ul2.study_set_id,
+            COUNT(DISTINCT ul2.user_id)::int as num_user_learn,
+            MAX(lf.last_reviewed_at) as last_study_at
+          FROM user_learns ul2
+          LEFT JOIN learn_flashcards lf ON ul2.id = lf.user_learn_id
+          WHERE ul2.status = 'active'
+          GROUP BY ul2.study_set_id
+        ) as ul_stats`),
+        'ss.id',
+        'ul_stats.study_set_id'
+      )
+      .groupBy(
+        "ss.id",
+        "ss.title",
+        "ss.icon",
+        "ss.description",
+        "topics.name",
+        "users.username",
+        "users.avatar_url",
+        "ss.is_public",
+        "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
+        "ss.created_at",
+        "ss.updated_at",
+        "stats.views",
+        "stats.favorites",
+        "stats.clones",
+        "stats.shares",
+        "ul_stats.num_user_learn",
+        "ul_stats.last_study_at"
+      )
+      .select(
+        "ss.id",
+        "ss.icon",
+        "ss.title",
+        "ss.description",
+        "topics.name as topic_name",
+        "users.username",
+        "users.avatar_url",
+        "ss.is_public",
+        "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
+        "ss.created_at",
+        "ss.updated_at",
+        knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
+        knex.raw("COUNT(r.id)::int as number_of_reviews"),
+        knex.raw("COALESCE(stats.views, 0) as views"),
+        knex.raw("COALESCE(stats.favorites, 0) as favorites"),
+        knex.raw("COALESCE(stats.clones, 0) as clones"),
+        knex.raw("COALESCE(stats.shares, 0) as shares"),
+        knex.raw("COALESCE(ul_stats.num_user_learn, 0) as num_user_learn"),
+        knex.raw("ul_stats.last_study_at as last_study_at")
+      )
+      .orderBy("ss.updated_at", "desc");
+
+    return studySets;
+  }
+
+  // Lấy studyset đang học
+  async getLearningStudySets(userId: string) {
+    const studySets = await StudySets.query()
+      .alias("ss")
+      .andWhere("ss.status", "active")
+      .innerJoin("user_learns as ul", function() {
+        this.on("ss.id", "=", "ul.studySetId")
+          .andOn("ul.userId", "=", knex.raw("?", [userId]))
+          .andOn("ul.status", "=", knex.raw("?", ["active"]));
+      })
+      .innerJoin("users", "ss.userId", "users.id")
+      .innerJoin("topics", "ss.topicId", "topics.id")
+      .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+      .leftJoin("study_set_stats as stats", "ss.id", "stats.study_set_id")
+      .leftJoin(
+        knex.raw(`(
+          SELECT 
+            ul2.study_set_id,
+            COUNT(DISTINCT ul2.user_id)::int as num_user_learn,
+            MAX(lf.last_reviewed_at) as last_study_at
+          FROM user_learns ul2
+          LEFT JOIN learn_flashcards lf ON ul2.id = lf.user_learn_id
+          WHERE ul2.status = 'active'
+          GROUP BY ul2.study_set_id
+        ) as ul_stats`),
+        'ss.id',
+        'ul_stats.study_set_id'
+      )
+      .groupBy(
+        "ss.id",
+        "ss.title",
+        "ss.icon",
+        "ss.description",
+        "topics.name",
+        "users.username",
+        "users.avatar_url",
+        "ss.is_public",
+        "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
+        "ss.created_at",
+        "ss.updated_at",
+        "stats.views",
+        "stats.favorites",
+        "stats.clones",
+        "stats.shares",
+        "ul_stats.num_user_learn",
+        "ul_stats.last_study_at",
+        "ul.processing"
+      )
+      .select(
+        "ss.id",
+        "ss.icon",
+        "ss.title",
+        "ss.description",
+        "topics.name as topic_name",
+        "users.username",
+        "users.avatar_url",
+        "ss.is_public",
+        "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
+        "ss.created_at",
+        "ss.updated_at",
+        "ul.processing as processing",
+        knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
+        knex.raw("COUNT(r.id)::int as number_of_reviews"),
+        knex.raw("COALESCE(stats.views, 0) as views"),
+        knex.raw("COALESCE(stats.favorites, 0) as favorites"),
+        knex.raw("COALESCE(stats.clones, 0) as clones"),
+        knex.raw("COALESCE(stats.shares, 0) as shares"),
+        knex.raw("COALESCE(ul_stats.num_user_learn, 0) as num_user_learn"),
+        knex.raw("ul_stats.last_study_at as last_study_at")
+      )
+      .orderBy("ul_stats.last_study_at", "desc");
+
+    return studySets;
+  }
+
+  // Lấy studyset public trong hệ thống (có search và pagination)
+  async getPublicStudySets(
+    userId: string, 
+    page: number = 1, 
+    limit: number = 20, 
+    search?: string, 
+    topicId?: string
+  ) {
+    const offset = (page - 1) * limit;
+
+    let query = StudySets.query()
+      .alias("ss")
+      .where("ss.is_public", true)
+      .whereNot("ss.userId", userId) // Không lấy studyset của bản thân
+      .andWhere("ss.status", "active")
+      .innerJoin("users", "ss.userId", "users.id")
+      .innerJoin("topics", "ss.topicId", "topics.id")
+      .leftJoin("reviews as r", "r.study_set_id", "ss.id")
+      .leftJoin("study_set_stats as stats", "ss.id", "stats.study_set_id")
+      .leftJoin(
+        knex.raw(`(
+          SELECT 
+            ul2.study_set_id,
+            COUNT(DISTINCT ul2.user_id)::int as num_user_learn,
+            MAX(lf.last_reviewed_at) as last_study_at
+          FROM user_learns ul2
+          LEFT JOIN learn_flashcards lf ON ul2.id = lf.user_learn_id
+          WHERE ul2.status = 'active'
+          GROUP BY ul2.study_set_id
+        ) as ul_stats`),
+        'ss.id',
+        'ul_stats.study_set_id'
+      );
+
+    // Apply search filter
+    if (search) {
+      query = query.where(function() {
+        this.where('ss.title', 'ilike', `%${search}%`)
+          .orWhere('ss.description', 'ilike', `%${search}%`)
+          .orWhere('users.username', 'ilike', `%${search}%`);
+      });
+    }
+
+    // Apply topic filter
+    if (topicId) {
+      query = query.where('ss.topicId', topicId);
+    }
+
+    // Count total for pagination (separate query without groupBy)
+    let countQuery = StudySets.query()
+      .alias("ss")
+      .where("ss.is_public", true)
+      .whereNot("ss.userId", userId)
+      .andWhere("ss.status", "active");
+
+    if (search) {
+      countQuery = countQuery
+        .innerJoin("users", "ss.userId", "users.id")
+        .where(function() {
+          this.where('ss.title', 'ilike', `%${search}%`)
+            .orWhere('ss.description', 'ilike', `%${search}%`)
+            .orWhere('users.username', 'ilike', `%${search}%`);
+        });
+    }
+
+    if (topicId) {
+      countQuery = countQuery.where('ss.topicId', topicId);
+    }
+
+    const countResult = await countQuery.count('* as total').first();
+    const totalRecords = parseInt((countResult as any)?.total as string || '0');
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    // Get paginated results
+    const studySets = await query
+      .groupBy(
+        "ss.id",
+        "ss.title",
+        "ss.icon",
+        "ss.description",
+        "topics.name",
+        "users.username",
+        "users.avatar_url",
+        "ss.is_public",
+        "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
+        "ss.created_at",
+        "ss.updated_at",
+        "stats.views",
+        "stats.favorites",
+        "stats.clones",
+        "stats.shares",
+        "ul_stats.num_user_learn",
+        "ul_stats.last_study_at"
+      )
+      .select(
+        "ss.id",
+        "ss.icon",
+        "ss.title",
+        "ss.description",
+        "topics.name as topic_name",
+        "users.username",
+        "users.avatar_url",
+        "ss.is_public",
+        "ss.number_of_flashcards",
+        "ss.from_study_set_id",
+        "ss.type",
+        "ss.created_at",
+        "ss.updated_at",
+        knex.raw("COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0)::float as avg_rating"),
+        knex.raw("COUNT(r.id)::int as number_of_reviews"),
+        knex.raw("COALESCE(stats.views, 0) as views"),
+        knex.raw("COALESCE(stats.favorites, 0) as favorites"),
+        knex.raw("COALESCE(stats.clones, 0) as clones"),
+        knex.raw("COALESCE(stats.shares, 0) as shares"),
+        knex.raw("COALESCE(ul_stats.num_user_learn, 0) as num_user_learn"),
+        knex.raw("ul_stats.last_study_at as last_study_at")
+      )
+      .orderBy("ss.created_at", "desc")
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      data: studySets,
+      pagination: {
+        page,
+        limit,
+        total: totalRecords,
+        totalPages
+      }
+    };
+  }
+
   async getStudySetById(studySetId: string, userId: string | null = null) {
     const studySet = await StudySets.query()
       .alias("ss")

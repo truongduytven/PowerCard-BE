@@ -1,6 +1,10 @@
 import express from "express";
 const router = express.Router();
 import studyController from "../controllers/studyController";
+import { validate } from '../validators';
+import { body, query } from 'express-validator';
+import { startStudyValidator, getCardsValidator } from '../validators/studyValidator';
+
 
 /**
  * @openapi
@@ -34,7 +38,7 @@ import studyController from "../controllers/studyController";
  *       400:
  *         description: studySetId là bắt buộc
  */
-router.post('/start', studyController.startStudySession);
+router.post('/start', validate(startStudyValidator), studyController.startStudySession);
 
 /**
  * @openapi
@@ -62,6 +66,6 @@ router.post('/start', studyController.startStudySession);
  *       401:
  *         description: Session expired
  */
-router.get('/cards', studyController.getStudyCards);
+router.get('/cards', validate(getCardsValidator), studyController.getStudyCards);
 
 export default router;

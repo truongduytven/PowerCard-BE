@@ -1,5 +1,7 @@
 import express from 'express'
 import flashcardController from '../controllers/flashcardController'
+import { validate } from '../validators'
+import { markFlashcardValidator, flashcardIdParamValidator, markedStudySetValidator } from '../validators/flashcardValidator'
 
 const router = express.Router()
 
@@ -38,7 +40,7 @@ const router = express.Router()
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-router.post('/mark', flashcardController.markFlashcard)
+router.post('/mark', validate(markFlashcardValidator), flashcardController.markFlashcard)
 
 /**
  * @openapi
@@ -54,7 +56,7 @@ router.post('/mark', flashcardController.markFlashcard)
  *       500:
  *         description: Lỗi máy chủ
  */
-router.get('/marked/:studySetId', flashcardController.getMarkedFlashcards)
+router.get('/marked/:studySetId', validate(markedStudySetValidator), flashcardController.getMarkedFlashcards)
 
 /**
  * @openapi
@@ -77,7 +79,7 @@ router.get('/marked/:studySetId', flashcardController.getMarkedFlashcards)
  *       500:
  *         description: Lỗi máy chủ
  */
-router.delete('/mark/:flashcardId', flashcardController.deleteFlashcardMark)
+router.delete('/mark/:flashcardId', validate(flashcardIdParamValidator), flashcardController.deleteFlashcardMark)
 
 /**
  * @openapi
@@ -100,6 +102,6 @@ router.delete('/mark/:flashcardId', flashcardController.deleteFlashcardMark)
  *       500:
  *         description: Lỗi máy chủ
  */
-router.get('/mark-status/:flashcardId', flashcardController.getFlashcardMarkStatus)
+router.get('/mark-status/:flashcardId', validate(flashcardIdParamValidator), flashcardController.getFlashcardMarkStatus)
 
 export default router

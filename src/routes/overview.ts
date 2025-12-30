@@ -1,6 +1,8 @@
 import express from "express";
 const router = express.Router();
 import overviewController from "../controllers/overviewController";
+import { validate } from '../validators';
+import { heatmapQueryValidator } from '../validators/overviewValidator';
 
 /**
  * @openapi
@@ -97,7 +99,7 @@ router.get('/weekly', overviewController.getWeeklyActivity);
  *       500:
  *         description: Lỗi máy chủ
  */
-router.get('/heatmap', overviewController.getActivityHeatmap);
+router.get('/heatmap', validate(heatmapQueryValidator), overviewController.getActivityHeatmap);
 
 /**
  * @openapi

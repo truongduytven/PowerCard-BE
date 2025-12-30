@@ -48,10 +48,10 @@ class FoldersetController {
   async updateFolderSet(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { title, description, studySets } = req.body;
+      const { title, description, studySets, icon } = req.body;
       const userId = (req as any).user.id;
 
-      await foldersetService.updateFolderSet(id, userId, title, description, studySets);
+      await foldersetService.updateFolderSet(id, userId, title, description, studySets, icon);
       res.status(200).json({ message: "Cập nhật bộ thư mục thành công" });
     } catch (error: any) {
       console.error("Error updating folder set:", error);

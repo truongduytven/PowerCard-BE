@@ -1,6 +1,15 @@
 import express from "express";
 const router = express.Router();
 import studysetController from "../controllers/studysetController";
+import { validate } from '../validators';
+import { query } from 'express-validator';
+import {
+  createStudySetValidator,
+  updateStudySetValidator,
+  studySetIdParamValidator,
+  getStudySetsQueryValidator,
+  getPublicStudySetsQueryValidator,
+} from '../validators/studysetValidator';
 
 /**
  * @openapi
@@ -38,7 +47,90 @@ import studysetController from "../controllers/studysetController";
  *       500:
  *         description: Lỗi server
  */
-router.get("/", studysetController.getListStudySets);
+router.get("/", validate(getStudySetsQueryValidator), studysetController.getListStudySets);
+
+/**
+ * @openapi
+ * /studyset/my-study-sets:
+ *   get:
+ *     summary: Lấy danh sách bộ học tập mà user tạo
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi server
+ */
+router.get("/my-study-sets", studysetController.getMyStudySets);
+
+/**
+ * @openapi
+ * /studyset/learning:
+ *   get:
+ *     summary: Lấy danh sách bộ học tập đang học
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi server
+ */
+router.get("/learning", studysetController.getLearningStudySets);
+
+/**
+ * @openapi
+ * /studyset/public:
+ *   get:
+ *     summary: Lấy danh sách bộ học tập public trong hệ thống
+ *     tags: [StudySets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         required: false
+ *         description: Số trang (mặc định 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *         required: false
+ *         description: Số lượng item mỗi trang (mặc định 20)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Tìm kiếm theo title, description, username
+ *       - in: query
+ *         name: topicId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         required: false
+ *         description: Lọc theo topic
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi server
+ */
+router.get("/public", validate(getPublicStudySetsQueryValidator), studysetController.getPublicStudySets);
 
 /**
  * @openapi
@@ -64,7 +156,7 @@ router.get("/", studysetController.getListStudySets);
  *       500:
  *         description: Lỗi server
  */
-router.get("/:id", studysetController.getStudySetById);
+router.get("/:id", validate(studySetIdParamValidator), studysetController.getStudySetById);
 
 /**
  * @openapi
@@ -118,7 +210,7 @@ router.get("/:id", studysetController.getStudySetById);
  *       500:
  *         description: Lỗi server
  */
-router.post("/", studysetController.createStudySet);
+router.post("/", validate(createStudySetValidator), studysetController.createStudySet);
 
 /** 
  * @openapi
@@ -182,7 +274,7 @@ router.post("/", studysetController.createStudySet);
  *          500:
  *            description: Lỗi server
  */
-router.put('/:id', studysetController.updateStudySet);
+router.put('/:id', validate(updateStudySetValidator), studysetController.updateStudySet);
 
 /** 
  * @openapi
@@ -208,7 +300,7 @@ router.put('/:id', studysetController.updateStudySet);
  *        500:
  *          description: Lỗi server
  */
-router.delete('/:id', studysetController.deleteStudySet);
+router.delete('/:id', validate(studySetIdParamValidator), studysetController.deleteStudySet);
 
 // ===== INTERACTION ROUTES =====
 
@@ -240,7 +332,7 @@ router.delete('/:id', studysetController.deleteStudySet);
  *       500:
  *         description: Lỗi server
  */
-router.post('/clone/:id', studysetController.cloneStudySet);
+router.post('/clone/:id', validate(studySetIdParamValidator), studysetController.cloneStudySet);
 
 /**
  * @openapi
@@ -270,7 +362,7 @@ router.post('/clone/:id', studysetController.cloneStudySet);
  *      500:
  *        description: Lỗi server
  */
-router.post('/duplicate/:id', studysetController.duplicateStudySet);
+router.post('/duplicate/:id', validate(studySetIdParamValidator), studysetController.duplicateStudySet);
 
 /**
  * @openapi
@@ -298,7 +390,7 @@ router.post('/duplicate/:id', studysetController.duplicateStudySet);
  *       500:
  *         description: Lỗi server
  */
-router.post('/:id/favorite', studysetController.addFavorite);
+router.post('/:id/favorite', validate(studySetIdParamValidator), studysetController.addFavorite);
 
 /**
  * @openapi
@@ -324,7 +416,7 @@ router.post('/:id/favorite', studysetController.addFavorite);
  *       500:
  *         description: Lỗi server
  */
-router.delete('/:id/favorite', studysetController.removeFavorite);
+router.delete('/:id/favorite', validate(studySetIdParamValidator), studysetController.removeFavorite);
 
 /**
  * @openapi
@@ -346,7 +438,7 @@ router.delete('/:id/favorite', studysetController.removeFavorite);
  *       500:
  *         description: Lỗi server
  */
-router.get('/:id/stats', studysetController.getStats);
+router.get('/:id/stats', validate(studySetIdParamValidator), studysetController.getStats);
 
 // ===== TEST ROUTE =====
 
@@ -382,6 +474,9 @@ router.get('/:id/stats', studysetController.getStats);
  *       500:
  *         description: Lỗi server
  */
-router.get('/:id/test', studysetController.generateTest);
+router.get('/:id/test', validate([
+  ...studySetIdParamValidator,
+  query('limit').optional().isInt({ min: 1, max: 1000 }).withMessage('limit phải là số từ 1-100'),
+]), studysetController.generateTest);
 
 export default router;

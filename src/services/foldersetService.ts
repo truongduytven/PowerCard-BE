@@ -81,7 +81,8 @@ class FolderSetService {
     userId: string, 
     title?: string, 
     description?: string, 
-    studySets?: string[]
+    studySets?: string[],
+    icon?: string
   ) {
     const folderSet = await FolderSets.query()
       .where("id", id)
@@ -97,6 +98,7 @@ class FolderSetService {
       await FolderSets.query(trx).patchAndFetchById(id, {
         title: title || folderSet.title,
         description: description || folderSet.description,
+        icon: icon !== undefined ? icon : folderSet.icon,
         numberOfStudySets: studySets?.length || folderSet.numberOfStudySets,
       });
 

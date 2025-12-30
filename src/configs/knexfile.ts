@@ -10,7 +10,7 @@ const knexConfig: { [key: string]: Knex.Config } = {
     client: 'pg',
     connection: {
       connectionString: process.env.DATABASE_URL || 'postgres://user:password@localhost:5432/database',
-      ssl: { rejectUnauthorized: false }
+      // ssl: { rejectUnauthorized: false }
     },
     migrations: {
       extension: 'ts',
