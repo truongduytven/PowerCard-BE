@@ -17,9 +17,9 @@ export default class FolderStudySets
   studySetId!: string;
   status!: string;
 
-  public tableName = "folder_study_sets";
+  public static tableName = "folder_study_sets";
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     folderset: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require("./FolderSets").default,

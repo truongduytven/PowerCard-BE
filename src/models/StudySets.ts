@@ -32,9 +32,9 @@ export default class StudySets extends BaseModel implements IStudySet {
   createdAt!: string
   updatedAt!: string
 
-  public tableName = 'study_sets'
+  public static tableName = 'study_sets'
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,

@@ -18,9 +18,9 @@ export default class FlashcardMarks extends BaseModel implements IFlashcardMark 
   markedAt!: string
   updatedAt!: string
 
-  public tableName = 'flashcard_marks'
+  public static tableName = 'flashcard_marks'
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,

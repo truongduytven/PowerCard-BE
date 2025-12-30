@@ -20,9 +20,9 @@ export default class FolderSets extends BaseModel implements IFolderSet {
   numberOfStudySets?: number
   status!: string
 
-  public tableName = 'folder_sets'
+  public static tableName = 'folder_sets'
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,

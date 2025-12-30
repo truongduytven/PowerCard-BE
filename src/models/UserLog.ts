@@ -16,9 +16,9 @@ export default class UserLogs extends BaseModel implements IUserLog{
   longestStreaks!: number
   lastLoginAt!: string | null
 
-  public tableName = 'user_logs'
+  public static tableName = 'user_logs'
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,

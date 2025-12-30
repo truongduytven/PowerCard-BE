@@ -16,9 +16,9 @@ export default class UserLearns extends BaseModel implements IUserLearn{
   processing!: number
   status!: string
 
-  public tableName = 'user_learns'
+  public static tableName = 'user_learns'
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,

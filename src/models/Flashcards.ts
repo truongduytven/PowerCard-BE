@@ -24,9 +24,9 @@ export default class Flashcards extends BaseModel implements IFlashcard {
   createdAt!: string
   updatedAt!: string
 
-  public tableName = 'flashcards'
+  public static tableName = 'flashcards'
 
-  public relationMappings: RelationMappings = {
+  public static relationMappings: RelationMappings = {
     studyset: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./StudySets').default,

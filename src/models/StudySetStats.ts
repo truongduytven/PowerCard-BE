@@ -3,7 +3,7 @@ import { Model } from 'objection';
 import StudySets from './StudySets';
 
 class StudySetStats extends BaseModel {
-  public tableName = 'study_set_stats';
+  public static tableName = 'study_set_stats';
 
   studySetId!: string;
   views!: number;
@@ -13,11 +13,11 @@ class StudySetStats extends BaseModel {
   createdAt!: string;
   updatedAt!: string;
 
-  public get idColumn() {
+  public static get idColumn() {
     return 'study_set_id';
   }
 
-  public get jsonSchema() {
+  public static get jsonSchema() {
     return {
       type: 'object',
       required: ['studySetId'],
@@ -33,7 +33,7 @@ class StudySetStats extends BaseModel {
     };
   }
 
-  public get relationMappings() {
+  public static get relationMappings() {
     return {
       studySet: {
         relation: Model.BelongsToOneRelation,
