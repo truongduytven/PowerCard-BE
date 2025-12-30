@@ -2,6 +2,8 @@ import express from "express";
 import authController from "../controllers/authController";
 import { protectedRoute } from "../middlewares/authMiddleware";
 import upload from "../middlewares/upload";
+import { validate } from "../validators";
+import { registerValidator, loginValidator } from "../validators/authValidator";
 const router = express.Router();
 
 /**
@@ -42,7 +44,7 @@ const router = express.Router();
  *       500:
  *         description: Lỗi server
  */
-router.post("/signin", authController.login);
+router.post("/signin", validate(loginValidator), authController.login);
 
 /**
  * @openapi
@@ -78,7 +80,7 @@ router.post("/signin", authController.login);
  *       500:
  *         description: Lỗi server
  */
-router.post("/signup", authController.register);
+router.post("/signup", validate(registerValidator), authController.register);
 
 /**
  * @openapi

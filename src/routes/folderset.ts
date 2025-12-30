@@ -1,6 +1,12 @@
 import express from 'express';
 const router = express.Router();
 import foldersetController from '../controllers/foldersetController';
+import { validate } from '../validators';
+import {
+  createFolderSetValidator,
+  updateFolderSetValidator,
+  folderSetIdParamValidator,
+} from '../validators/foldersetValidator';
 
 /**
  * @openapi
@@ -54,7 +60,7 @@ router.get('/', foldersetController.getAllFolderSets);
  *       500:
  *         description: Lỗi server
  */
-router.get('/:id', foldersetController.getFolderSetById);
+router.get('/:id', validate(folderSetIdParamValidator), foldersetController.getFolderSetById);
 
 /** 
  * @openapi
@@ -91,7 +97,7 @@ router.get('/:id', foldersetController.getFolderSetById);
  *      500:
  *        description: Lỗi server
  */
-router.post('/', foldersetController.createFolderSet);
+router.post('/', validate(createFolderSetValidator), foldersetController.createFolderSet);
 
 /** 
  * @openapi
@@ -118,10 +124,12 @@ router.post('/', foldersetController.createFolderSet);
  *                  type: string
  *                description:
  *                  type: string
+ *                icon: 
+ *                  type: string
  *                studySets:
  *                  type: array
  *                  items:
- *                    type: 
+ *                    type: string
  *     responses:
  *      200:
  *        description: Cập nhật bộ thư mục thành công
@@ -134,7 +142,7 @@ router.post('/', foldersetController.createFolderSet);
  *      500:
  *        description: Lỗi server
  */
-router.put('/:id', foldersetController.updateFolderSet);
+router.put('/:id', validate(updateFolderSetValidator), foldersetController.updateFolderSet);
 
 /** 
  * @openapi
@@ -161,6 +169,6 @@ router.put('/:id', foldersetController.updateFolderSet);
  *        description: Lỗi server
  */
 
-router.delete('/:id', foldersetController.deleteFolderSet);
+router.delete('/:id', validate(folderSetIdParamValidator), foldersetController.deleteFolderSet);
 
 export default router;

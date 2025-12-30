@@ -28,6 +28,76 @@ class StudysetController {
     }
   }
 
+  // Lấy studyset mà user tự tạo
+  async getMyStudySets(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user.id;
+      
+      const studySets = await studysetService.getMyStudySets(userId);
+
+      res.status(200).json({
+        message: "Lấy danh sách bộ học tập của tôi thành công",
+        data: studySets,
+      });
+    } catch (error: any) {
+      console.error("Error fetching my study sets:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
+  // Lấy studyset đang học
+  async getLearningStudySets(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user.id;
+      
+      const studySets = await studysetService.getLearningStudySets(userId);
+
+      res.status(200).json({
+        message: "Lấy danh sách bộ học tập đang học thành công",
+        data: studySets,
+      });
+    } catch (error: any) {
+      console.error("Error fetching learning study sets:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
+  // Lấy studyset public (có search và pagination)
+  async getPublicStudySets(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const search = req.query.search as string;
+      const topicId = req.query.topicId as string;
+      
+      const result = await studysetService.getPublicStudySets(
+        userId,
+        page,
+        limit,
+        search,
+        topicId
+      );
+
+      res.status(200).json({
+        message: "Lấy danh sách bộ học tập public thành công",
+        ...result,
+      });
+    } catch (error: any) {
+      console.error("Error fetching public study sets:", error);
+      if (error.status) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
+
   async getStudySetById(req: Request, res: Response) {
     try {
       const studySetId = req.params.id;

@@ -1,6 +1,8 @@
 import express from "express";
 const router = express.Router();
 import difficultyController from "../controllers/difficultyController";
+import { validate } from '../validators';
+import { configureDifficultyValidator, getDifficultyValidator } from '../validators/difficulty';
 
 /**
  * @openapi
@@ -46,7 +48,7 @@ import difficultyController from "../controllers/difficultyController";
  *       500:
  *         description: Đã xảy ra lỗi máy chủ
  */
-router.post('/config', difficultyController.configureDifficulty);
+router.post('/config', validate(configureDifficultyValidator), difficultyController.configureDifficulty);
 
 /**
  * @openapi
@@ -70,6 +72,6 @@ router.post('/config', difficultyController.configureDifficulty);
  *       500:
  *         description: Đã xảy ra lỗi máy chủ
  */
-router.get('/', difficultyController.getDifficultyConfig);
+router.get('/', validate(getDifficultyValidator), difficultyController.getDifficultyConfig);
 
 export default router;
