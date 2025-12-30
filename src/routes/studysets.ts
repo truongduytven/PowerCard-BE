@@ -7,7 +7,6 @@ import {
   createStudySetValidator,
   updateStudySetValidator,
   studySetIdParamValidator,
-  getStudySetsQueryValidator,
   getPublicStudySetsQueryValidator,
 } from '../validators/studysetValidator';
 
@@ -28,15 +27,31 @@ import {
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: isAuthor
+ *         name: page
  *         required: false
  *         schema:
- *           type: boolean
+ *           type: integer
+ *           minimum: 1
  *       - in: query
- *         name: isLearning
+ *         name: limit
  *         required: false
  *         schema:
- *           type: boolean
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Tìm kiếm theo title, description, username
+ *       - in: query
+ *         name: topicId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Lọc theo topic
  *     responses:
  *       200:
  *         description: Thông tin tài khoản
@@ -47,7 +62,7 @@ import {
  *       500:
  *         description: Lỗi server
  */
-router.get("/", validate(getStudySetsQueryValidator), studysetController.getListStudySets);
+router.get("/", validate(getPublicStudySetsQueryValidator), studysetController.getListStudySets);
 
 /**
  * @openapi
