@@ -515,8 +515,6 @@ class OverviewService {
       .whereNotNull('last_reviewed_at')
       .select('last_reviewed_at as lastReviewedAt');
 
-    console.log('Most Productive Day - Reviews count:', reviews.length);
-
     if (reviews.length === 0) {
       return null;
     }
