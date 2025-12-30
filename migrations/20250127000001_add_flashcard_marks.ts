@@ -20,8 +20,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('flashcard_id')
     table.index('is_marked')
   })
-
-  console.log('✅ Created flashcard_marks table')
 }
 
 export async function down(knex: Knex): Promise<void> {

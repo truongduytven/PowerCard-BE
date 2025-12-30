@@ -485,19 +485,6 @@ class StudySetService {
       console.error("Error recording view:", err);
     });
 
-    const flashcards = await Flashcards.query()
-      .alias("flashcards")
-      .leftJoin("media as media", "flashcards.mediaId", "media.id")
-      .where("flashcards.studySetId", studySetId)
-      .select(
-        "flashcards.id",
-        "media.imageUrl as media_url",
-        "flashcards.position",
-        "flashcards.term",
-        "flashcards.definition" 
-      )
-      .orderBy("position", "asc");
-
     // Check if user has favorited this study set
     let isFavorited = false;
     if (userId) {
@@ -506,7 +493,6 @@ class StudySetService {
 
     return {
       ...studySet,
-      flashcards: flashcards,
       isFavorited
     };
   }

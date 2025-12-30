@@ -104,4 +104,27 @@ router.delete('/mark/:flashcardId', validate(flashcardIdParamValidator), flashca
  */
 router.get('/mark-status/:flashcardId', validate(flashcardIdParamValidator), flashcardController.getFlashcardMarkStatus)
 
+/**
+ * @openapi
+ * /flashcards/studyset/{studySetId}:
+ *   get:
+ *     summary: Lấy tất cả flashcards trong một bộ học tập
+ *     tags: [Flashcards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: studySetId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID của bộ học tập
+ *     responses:
+ *       200:
+ *         description: Lấy flashcards thành công
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get('/studyset/:studySetId', validate(markedStudySetValidator), flashcardController.getListFlashcardByStudySet)
+
 export default router

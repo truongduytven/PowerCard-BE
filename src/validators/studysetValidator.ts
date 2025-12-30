@@ -64,28 +64,6 @@ export const updateStudySetValidator = [
     .isUUID()
     .withMessage('Study set ID phải là UUID hợp lệ'),
   body('title')
-    .optional()
-    .trim()
-    .isLength({ min: 1, max: 255 })
-    .withMessage('Tiêu đề phải có từ 1-255 ký tự'),
-  body('description')
-    .optional()
-    .trim()
-    .isLength({ max: 1000 })
-    .withMessage('Mô tả không được vượt quá 1000 ký tự'),
-  body('isPublic')
-    .optional()
-    .isBoolean()
-    .withMessage('isPublic phải là boolean'),
-]
-
-export const studySetIdParamValidator = [
-  param('id')
-    .notEmpty()
-    .withMessage('Study set ID là bắt buộc')
-    .isUUID()
-    .withMessage('Study set ID phải là UUID hợp lệ'),
-    body('title')
     .notEmpty()
     .withMessage('Tiêu đề là bắt buộc')
     .trim()
@@ -141,33 +119,41 @@ export const studySetIdParamValidator = [
     .withMessage('mediaId phải là UUID hợp lệ'),  
 ]
 
-export const getStudySetsQueryValidator = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('page phải là số nguyên dương'),
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('limit phải là số từ 1-100'),
-  query('search')
-    .optional()
-    .trim()
-    .isLength({ max: 255 })
-    .withMessage('search không được vượt quá 255 ký tự'),
-  query('topicId')
-    .optional()
+export const studySetIdParamValidator = [
+  param('id')
+    .notEmpty()
+    .withMessage('Study set ID là bắt buộc')
     .isUUID()
-    .withMessage('topicId phải là UUID hợp lệ'),
-  query('isPublic')
-    .optional()
-    .isBoolean()
-    .withMessage('isPublic phải là boolean'),
-  query('isLearning')
-    .optional()
-    .isBoolean()
-    .withMessage('isLearning phải là boolean'),
+    .withMessage('Study set ID phải là UUID hợp lệ'),
 ]
+
+// export const getStudySetsQueryValidator = [
+//   query('page')
+//     .optional()
+//     .isInt({ min: 1 })
+//     .withMessage('page phải là số nguyên dương'),
+//   query('limit')
+//     .optional()
+//     .isInt({ min: 1, max: 100 })
+//     .withMessage('limit phải là số từ 1-100'),
+//   query('search')
+//     .optional()
+//     .trim()
+//     .isLength({ max: 255 })
+//     .withMessage('search không được vượt quá 255 ký tự'),
+//   query('topicId')
+//     .optional()
+//     .isUUID()
+//     .withMessage('topicId phải là UUID hợp lệ'),
+//   query('isPublic')
+//     .optional()
+//     .isBoolean()
+//     .withMessage('isPublic phải là boolean'),
+//   query('isLearning')
+//     .optional()
+//     .isBoolean()
+//     .withMessage('isLearning phải là boolean'),
+// ]
 
 // Validator cho public study sets (có search và pagination)
 export const getPublicStudySetsQueryValidator = [
