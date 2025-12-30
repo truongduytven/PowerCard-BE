@@ -30,9 +30,9 @@ export default class UserTests extends BaseModel implements IUserTest {
   createdAt!: string
   updatedAt!: string
   
-  static tableName = 'user_tests'
+  public tableName = 'user_tests'
 
-  static relationMappings: RelationMappings = {
+  public relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,

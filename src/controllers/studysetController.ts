@@ -72,8 +72,8 @@ class StudysetController {
   async getPublicStudySets(req: Request, res: Response) {
     try {
       const userId = (req as any).user.id;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const page = Number.parseInt(req.query.page as string) || 1;
+      const limit = Number.parseInt(req.query.limit as string) || 20;
       const search = req.query.search as string;
       const topicId = req.query.topicId as string;
       
@@ -209,7 +209,7 @@ class StudysetController {
   async generateTest(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const limit = Number.parseInt(req.query.limit as string) || 20;
 
       const test = await testService.generateTest(id, limit);
       res.status(200).json({ 

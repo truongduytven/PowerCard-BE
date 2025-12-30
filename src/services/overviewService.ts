@@ -53,8 +53,8 @@ class OverviewService {
       .first();
 
     return {
-      cardsStudied: parseInt(result?.cards_studied || '0'),
-      cardsMastered: parseInt(result?.cards_mastered || '0'),
+      cardsStudied: Number.parseInt(result?.cards_studied || '0'),
+      cardsMastered: Number.parseInt(result?.cards_mastered || '0'),
     };
   }
 
@@ -92,7 +92,7 @@ class OverviewService {
 
     const accuracyRate = (totalScore / learnFlashcards.length) * 100;
 
-    return { rate: parseFloat(accuracyRate.toFixed(2)) };
+    return { rate: Number.parseFloat(accuracyRate.toFixed(2)) };
   }
 
   private async calculateTodayProgress(userId: string) {
@@ -108,7 +108,7 @@ class OverviewService {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
@@ -124,16 +124,17 @@ class OverviewService {
       )
       .first();
 
-    const todayCards = parseInt(result?.today_cards || '0');
-    const yesterdayCards = parseInt(result?.yesterday_cards || '0');
+    const todayCards = Number.parseInt(result?.today_cards || '0');
+    const yesterdayCards = Number.parseInt(result?.yesterday_cards || '0');
+    const progress = todayCards > 0 ? 100 : 0;
 
-    const compareYesterday = yesterdayCards === 0 
-      ? (todayCards > 0 ? 100 : 0)
+    const compareYesterday = yesterdayCards === 0
+      ? (progress)
       : ((todayCards - yesterdayCards) / yesterdayCards) * 100;
 
     return {
       cards: todayCards,
-      compareYesterday: parseFloat(compareYesterday.toFixed(2)),
+      compareYesterday: Number.parseFloat(compareYesterday.toFixed(2)),
     };
   }
 
@@ -163,8 +164,8 @@ class OverviewService {
           .count('* as count')
           .first();
 
-        const total = parseInt(String(totalCards?.count || '0'));
-        const learned = parseInt(String(learnedCards?.count || '0'));
+        const total = Number.parseInt(String(totalCards?.count || '0'));
+        const learned = Number.parseInt(String(learnedCards?.count || '0'));
         const percentage = total > 0 ? Math.round((learned / total) * 100) : 0;
 
         return {
@@ -177,8 +178,10 @@ class OverviewService {
       })
     );
 
-    const sortedStudySets = studySetProgress
-      .sort((a, b) => b.percentage - a.percentage);
+    const sortedStudySets = [...studySetProgress];
+    sortedStudySets.sort((a, b) => b.percentage - a.percentage);
+
+
 
     return {
       weeklyActivity: null,
@@ -241,7 +244,7 @@ class OverviewService {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(today.getFullYear(), today.getMonth(), day);
       date.setHours(0, 0, 0, 0);
-      
+
       const nextDay = new Date(date);
       nextDay.setDate(date.getDate() + 1);
 
@@ -261,8 +264,8 @@ class OverviewService {
         }
       });
 
-      const accuracy = dayReviews.length > 0 
-        ? Math.round((accuracyScore / dayReviews.length) * 100) 
+      const accuracy = dayReviews.length > 0
+        ? Math.round((accuracyScore / dayReviews.length) * 100)
         : 0;
 
       monthlyData.push({
@@ -298,7 +301,7 @@ class OverviewService {
     for (let month = 0; month < 12; month++) {
       const startOfMonth = new Date(today.getFullYear(), month, 1);
       startOfMonth.setHours(0, 0, 0, 0);
-      
+
       const endOfMonth = new Date(today.getFullYear(), month + 1, 0);
       endOfMonth.setHours(23, 59, 59, 999);
 
@@ -318,8 +321,8 @@ class OverviewService {
         }
       });
 
-      const accuracy = monthReviews.length > 0 
-        ? Math.round((accuracyScore / monthReviews.length) * 100) 
+      const accuracy = monthReviews.length > 0
+        ? Math.round((accuracyScore / monthReviews.length) * 100)
         : 0;
 
       yearlyData.push({
@@ -361,7 +364,7 @@ class OverviewService {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
       date.setHours(0, 0, 0, 0);
-      
+
       const nextDay = new Date(date);
       nextDay.setDate(date.getDate() + 1);
 
@@ -381,8 +384,8 @@ class OverviewService {
         }
       });
 
-      const accuracy = dayReviews.length > 0 
-        ? Math.round((accuracyScore / dayReviews.length) * 100) 
+      const accuracy = dayReviews.length > 0
+        ? Math.round((accuracyScore / dayReviews.length) * 100)
         : 0;
 
       weeklyData.push({
@@ -445,7 +448,7 @@ class OverviewService {
     reviews.forEach((review: any) => {
       const reviewDate = new Date(review.lastReviewedAt);
       const hour = reviewDate.getHours();
-      if (!isNaN(hour)) {
+      if (!Number.isNaN(hour)) {
         hourCounts[hour] = (hourCounts[hour] || 0) + 1;
       }
     });
@@ -455,24 +458,44 @@ class OverviewService {
       return null;
     }
 
-    const peakHourEntry = entries.sort(([, a], [, b]) => (b as number) - (a as number))[0];
+    const sortedEntries = [...entries];
+    sortedEntries.sort(([, a], [, b]) => b - a);
+
+    const peakHourEntry = sortedEntries[0];
+
 
     if (!peakHourEntry) return null;
 
-    const hour = parseInt(peakHourEntry[0]);
-    
-    if (isNaN(hour)) {
+    const hour = Number.parseInt(peakHourEntry[0]);
+
+    if (Number.isNaN(hour)) {
       return null;
     }
-    
+
     // Format start time
-    const startHour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    let startHour12: number;
+    if (hour === 0) {
+      startHour12 = 12;
+    } else if (hour > 12) {
+      startHour12 = hour - 12;
+    } else {
+      startHour12 = hour;
+    }
+
     const startPeriod = hour < 12 ? 'AM' : 'PM';
     const startTime = `${startHour12}:00 ${startPeriod}`;
-    
+
     // Format end time (2 hours later)
     const endHour24 = hour + 2;
-    const endHour12 = endHour24 === 0 ? 12 : endHour24 > 12 ? endHour24 - 12 : endHour24;
+    let endHour12: number;
+    if (endHour24 === 0) {
+      endHour12 = 12;
+    } else if (endHour24 > 12) {
+      endHour12 = endHour24 - 12;
+    } else {
+      endHour12 = endHour24;
+    }
+
     const endPeriod = endHour24 < 12 || endHour24 === 24 ? 'AM' : 'PM';
     const endTime = `${endHour12}:00 ${endPeriod}`;
 
@@ -504,7 +527,7 @@ class OverviewService {
     reviews.forEach((review: any) => {
       const reviewDate = new Date(review.lastReviewedAt);
       const day = reviewDate.getDay();
-      if (!isNaN(day) && day >= 0 && day <= 6) {
+      if (!Number.isNaN(day) && day >= 0 && day <= 6) {
         const dayName = dayNames[day];
         if (dayName) {
           dayCounts[dayName] = (dayCounts[dayName] || 0) + 1;
@@ -517,9 +540,13 @@ class OverviewService {
       return null;
     }
 
-    const mostProductiveDayEntry = entries.sort(([, a], [, b]) => (b as number) - (a as number))[0];
+    const sortedEntries = [...entries];
+    sortedEntries.sort(([, a], [, b]) => b - a);
 
-    if (!mostProductiveDayEntry || !mostProductiveDayEntry[0]) {
+    const mostProductiveDayEntry = sortedEntries[0];
+
+
+    if (!mostProductiveDayEntry?.[0]) {
       return null;
     }
 
@@ -553,8 +580,8 @@ class OverviewService {
     }
 
     const topicAccuracy = studySetsWithAccuracy.map((topic: any) => {
-      const total = parseInt(topic.total_cards);
-      const score = parseFloat(topic.score || '0');
+      const total = Number.parseInt(topic.total_cards);
+      const score = Number.parseFloat(topic.score || '0');
       const accuracy = total > 0 ? Math.round((score / total) * 100) : 0;
       return {
         name: topic.name,
@@ -593,8 +620,8 @@ class OverviewService {
     }
 
     const topicAccuracy = studySetsWithAccuracy.map((topic: any) => {
-      const total = parseInt(topic.total_cards);
-      const score = parseFloat(topic.score || '0');
+      const total = Number.parseInt(topic.total_cards);
+      const score = Number.parseFloat(topic.score || '0');
       const accuracy = total > 0 ? Math.round((score / total) * 100) : 0;
       return {
         name: topic.name,
@@ -619,7 +646,7 @@ class OverviewService {
     const deckPerformance = await Promise.all(
       userLearns.map(async (ul: any) => {
         const studySet = ul.studyset;
-        
+
         if (!studySet) {
           return null;
         }
@@ -631,7 +658,7 @@ class OverviewService {
           .count('id as count')
           .first();
 
-        const total = parseInt(String(totalFlashcards?.count || '0'));
+        const total = Number.parseInt(String(totalFlashcards?.count || '0'));
 
         // Số flashcards đã study (có trong learn_flashcards)
         const studiedFlashcards = await knex('learn_flashcards')
@@ -640,7 +667,7 @@ class OverviewService {
           .count('id as count')
           .first();
 
-        const studied = parseInt(String(studiedFlashcards?.count || '0'));
+        const studied = Number.parseInt(String(studiedFlashcards?.count || '0'));
 
         // Số flashcards mastered (difficulty = Easy)
         const masteredFlashcards = await knex('learn_flashcards as lf')
@@ -650,7 +677,7 @@ class OverviewService {
           .count('lf.id as count')
           .first();
 
-        const mastered = parseInt(String(masteredFlashcards?.count || '0'));
+        const mastered = Number.parseInt(String(masteredFlashcards?.count || '0'));
 
         // Progress (%)
         const progress = total > 0 ? Math.round((studied / total) * 100) : 0;

@@ -1,7 +1,7 @@
 import type { Knex } from 'knex'
 import { config as dotenvConfig } from 'dotenv'
 import { knexSnakeCaseMappers } from 'objection'
-import path from 'path'
+import path from 'node:path'
 
 dotenvConfig({ path: path.resolve(__dirname, '../../.env') })
 

@@ -14,9 +14,9 @@ export default class Difficulties extends BaseModel implements IDifficulty {
   name!: string
   minutes!: number
 
-  static tableName = 'difficulties'
+  public tableName = 'difficulties'
 
-  static relationMappings: RelationMappings = {
+  public relationMappings: RelationMappings = {
     learnFlashcard: {
       relation: Model.HasManyRelation,
       modelClass: () => require('./LearnFlashcards').default,

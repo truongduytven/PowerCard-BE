@@ -20,9 +20,9 @@ export default class LearnFlashcards extends BaseModel implements ILearnFlashcar
   nextReviewAt!: string | null
   lastReviewedAt!: string | null
 
-  static tableName = 'learn_flashcards'
+  public tableName = 'learn_flashcards'
 
-  static relationMappings: RelationMappings = {
+  public relationMappings: RelationMappings = {
     userlearn: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./UserLearns').default,

@@ -1,6 +1,7 @@
 import FolderSets from "../models/FolderSets";
 import StudySets from "../models/StudySets";
 import FolderStudySets from "../models/FolderStudySets";
+import { ApiError } from "../utils/ApiError";
 
 class FolderSetService {
   async getAllFolderSets(userId: string) {
@@ -20,7 +21,7 @@ class FolderSetService {
       .first();
 
     if (!folderSet) {
-      throw { status: 404, message: "Không tìm thấy bộ thư mục" };
+      throw new ApiError(404, "Không tìm thấy bộ thư mục");
     }
 
     const studySets = await StudySets.query()
@@ -53,7 +54,7 @@ class FolderSetService {
 
   async createFolderSet(userId: string, title: string, description: string, icon: string | null, studySets: string[]) {
     if (!title || !description || !Array.isArray(studySets)) {
-      throw { status: 400, message: "Yêu cầu không hợp lệ" };
+      throw new ApiError(400, "Yêu cầu không hợp lệ");
     }
 
     const newFolderSet = await FolderSets.query().insert({
@@ -65,7 +66,7 @@ class FolderSetService {
       status: "active",
     });
 
-    await Promise.all(studySets.map((studySetId: string) => 
+    await Promise.all(studySets.map((studySetId: string) =>
       FolderStudySets.query().insert({
         folderSetId: newFolderSet.id,
         studySetId,
@@ -77,10 +78,10 @@ class FolderSetService {
   }
 
   async updateFolderSet(
-    id: string, 
-    userId: string, 
-    title?: string, 
-    description?: string, 
+    id: string,
+    userId: string,
+    title?: string,
+    description?: string,
     studySets?: string[],
     icon?: string
   ) {
@@ -91,14 +92,14 @@ class FolderSetService {
       .first();
 
     if (!folderSet) {
-      throw { status: 404, message: "Không tìm thấy bộ thư mục" };
+      throw new ApiError(404, "Không tìm thấy bộ thư mục");
     }
 
     await FolderSets.transaction(async (trx) => {
       await FolderSets.query(trx).patchAndFetchById(id, {
         title: title || folderSet.title,
         description: description || folderSet.description,
-        icon: icon !== undefined ? icon : folderSet.icon,
+        icon: icon ?? folderSet.icon,
         numberOfStudySets: studySets?.length || folderSet.numberOfStudySets,
       });
 
@@ -109,14 +110,17 @@ class FolderSetService {
         const activeRelations = existingRelations.filter((rel) => rel.status === "active");
         const inactiveRelations = existingRelations.filter((rel) => rel.status === "inactive");
         const activeStudySetIds = activeRelations.map((rel) => rel.studySetId);
-        const inactiveStudySetIds = inactiveRelations.map((rel) => rel.studySetId);
-        const newStudySetIds = studySets as string[];
+        const inactiveStudySetIds = new Set(
+          inactiveRelations.map((rel) => rel.studySetId)
+        );
+
+        const newStudySetIds = studySets;
 
         const toReactivate = newStudySetIds.filter(
-          (studySetId) => inactiveStudySetIds.includes(studySetId)
+          (studySetId) => inactiveStudySetIds.has(studySetId)
         );
         const toAdd = newStudySetIds.filter(
-          (studySetId) => !activeStudySetIds.includes(studySetId) && !inactiveStudySetIds.includes(studySetId)
+          (studySetId) => !activeStudySetIds.includes(studySetId) && !inactiveStudySetIds.has(studySetId)
         );
         const toDeactivate = activeStudySetIds.filter(
           (studySetId) => !newStudySetIds.includes(studySetId)
@@ -159,7 +163,7 @@ class FolderSetService {
       .first();
 
     if (!folderSet) {
-      throw { status: 404, message: "Không tìm thấy bộ thư mục" };
+      throw new ApiError(404, "Không tìm thấy bộ thư mục");
     }
 
     await FolderSets.query()

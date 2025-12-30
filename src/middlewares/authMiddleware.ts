@@ -5,7 +5,7 @@ export const protectedRoute = async (req: any, res: any, next: any) => {
   try {
     // get access token from header
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    const token = authHeader?.split(' ')[1]; // Bearer TOKEN
     if (!token) {
       return res.status(401).json({ message: 'Không có quyền truy cập' });
     }
@@ -25,7 +25,7 @@ export const protectedRoute = async (req: any, res: any, next: any) => {
 
       const user = await User.query().findById(decodedUser.userId);
 
-      if (!user || user.status !== 'active') {
+      if (user?.status !== 'active') {
         return res.status(403).json({ message: 'Tài khoản của bạn không được phép truy cập' });
       }
       

@@ -1,8 +1,7 @@
-// Cấu hình Cloudinary cho TypeScript
-// @ts-ignore
-/* eslint-disable import/prefer-export-from */
+// cloudinary.config.ts
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 cloudinary.config({
