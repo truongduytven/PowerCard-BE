@@ -11,7 +11,7 @@ export const validate = (validations: ValidationChain[]) => {
     }
 
     const extractedErrors: any[] = []
-    errors.array().map((err: any) =>
+    errors.array().forEach((err: any) =>
       extractedErrors.push({
         field: err.path || err.param,
         message: err.msg,
