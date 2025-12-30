@@ -15,6 +15,22 @@ const router = express.Router();
 
 /**
  * @openapi
+ * /auth/users:
+ *   get:
+ *    summary: Lấy danh sách tất cả người dùng
+ *    tags: [Auth]
+ *    security:
+ *      - bearerAuth: []
+ *    responses:
+ *      200:
+ *        description: Lấy danh sách người dùng thành công
+ *      500:
+ *        description: Đã xảy ra lỗi máy chủ
+ */
+router.get("/users", authController.getAllUsers);
+
+/**
+ * @openapi
  * /auth/signin:
  *   post:
  *     summary: Đăng nhập

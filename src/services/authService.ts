@@ -173,6 +173,14 @@ class AuthService {
       }
     };
   }
+
+  async getAllUsers() {
+    const users = await Users.query()
+      .select('id', 'username', 'email', 'role', 'status', 'avatarUrl', 'avatarId', 'createdAt', 'updatedAt')
+      .orderBy('createdAt', 'desc');
+
+    return users;
+  }
 }
 
 export default new AuthService();

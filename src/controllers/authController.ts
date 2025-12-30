@@ -98,6 +98,16 @@ class AuthController {
       return res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
     }
   }
+
+  async getAllUsers(req: Request, res: Response) {
+    try {
+      const users = await authService.getAllUsers();
+      return res.status(200).json({ message: "Lấy danh sách người dùng thành công", data: users });
+    } catch (error: any) {
+      console.error("GetAllUsers error:", error);
+      return res.status(500).json({ message: "Đã xảy ra lỗi máy chủ" });
+    }
+  }
 }
 
 export default new AuthController();
