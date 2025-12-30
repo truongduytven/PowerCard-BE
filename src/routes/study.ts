@@ -2,7 +2,6 @@ import express from "express";
 const router = express.Router();
 import studyController from "../controllers/studyController";
 import { validate } from '../validators';
-import { body, query } from 'express-validator';
 import { startStudyValidator, getCardsValidator } from '../validators/studyValidator';
 
 

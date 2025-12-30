@@ -26,7 +26,7 @@ export default class Users extends BaseModel implements IUser {
   createdAt!: string
   updatedAt!: string
 
-  public tableName = 'users'
+  static tableName = 'users'
 
   public relationMappings: RelationMappings = {
     studyset: {
