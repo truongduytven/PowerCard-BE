@@ -115,6 +115,30 @@ class FlashcardService {
 
     return mark ? mark.isMarked : false
   }
+
+  async getFlashCardByStudySetId(studySetId: string, userId: string): Promise<Flashcards[]> {
+    // each flashcard include isMarked field
+    const flashcards = await Flashcards.query()
+      .alias('flashcards')
+      .leftJoin('media', 'flashcards.mediaId', 'media.id')
+      .select(
+        'flashcards.id',
+        'flashcards.position',
+        'flashcards.term',
+        'flashcards.definition', 
+        'flashcards.studySetId',
+        'flashcards.status',
+        'media.image_url as mediaImageUrl'
+      )
+      .where('flashcards.studySetId', studySetId)
+      .orderBy('flashcards.position', 'asc')
+
+    for (const flashcard of flashcards) {
+      const isMarked = await this.getFlashcardMarkStatus(userId, flashcard.id);
+      (flashcard as any).isMarked = isMarked
+    }
+    return flashcards
+  }
 }
 
 export default new FlashcardService()

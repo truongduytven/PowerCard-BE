@@ -59,6 +59,14 @@ export default class Flashcards extends BaseModel implements IFlashcard {
         to: 'media.id',
       },
     },
+    marks: {
+      relation: Model.HasManyRelation,
+      modelClass: () => require('./FlashcardMarks').default,
+      join: {
+        from: 'flashcards.id',
+        to: 'flashcard_marks.flashcard_id',
+      },
+    },
   }
 }
 

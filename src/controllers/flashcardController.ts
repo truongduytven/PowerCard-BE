@@ -141,6 +141,34 @@ class FlashcardController {
       })
     }
   }
+
+  async getListFlashcardByStudySet(req: Request, res: Response) {
+    try {
+      const studySetId = req.params.studySetId as string | undefined
+
+      if (!studySetId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid studySetId',
+        })
+      }
+
+      const flashcards = await flashcardService.getFlashCardByStudySetId(studySetId, (req as any).user?.id)
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Flashcards retrieved successfully',
+        data: flashcards,
+        total: flashcards.length,
+      })
+    } catch (error: any) {
+      console.error('Error getting flashcards by study set:', error)
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Internal server error',
+      })
+    }
+  }
 }
 
 export default new FlashcardController()
