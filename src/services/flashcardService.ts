@@ -52,28 +52,6 @@ class FlashcardService {
     return newMark
   }
 
-  // async getMarkedFlashcards(userId: string): Promise<MarkedFlashcardResponse[]> {
-  //   const markedFlashcards = await knex('flashcard_marks as fm')
-  //     .select(
-  //       'fm.id',
-  //       'fm.flashcard_id as flashcardId',
-  //       'f.front_content as frontContent',
-  //       'f.back_content as backContent',
-  //       'f.study_set_id as studySetId',
-  //       'ss.title as studySetTitle',
-  //       'fm.is_marked as isMarked',
-  //       'fm.marked_at as markedAt',
-  //       'fm.updated_at as updatedAt'
-  //     )
-  //     .join('flashcards as f', 'fm.flashcard_id', 'f.id')
-  //     .join('study_sets as ss', 'f.study_set_id', 'ss.id')
-  //     .where('fm.user_id', userId)
-  //     .andWhere('fm.is_marked', true)
-  //     .orderBy('fm.marked_at', 'desc')
-
-  //   return markedFlashcards
-  // }
-
   async getMarkedFlashcardsByStudySet(
     userId: string,
     studySetId: string

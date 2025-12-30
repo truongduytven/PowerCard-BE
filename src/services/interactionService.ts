@@ -1,6 +1,7 @@
-import StudySetInteractions, { InteractionType } from "../models/StudySetInteractions";
+import StudySetInteractions from "../models/StudySetInteractions";
 import StudySetStats from "../models/StudySetStats";
 import StudySets from "../models/StudySets";
+import { ApiError } from "../utils/ApiError";
 
 class InteractionService {
   /**
@@ -12,7 +13,7 @@ class InteractionService {
     // Check if study set exists
     const studySet = await StudySets.query().findById(studySetId);
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     // Anti-spam: Check if user already viewed in last 24 hours
@@ -60,7 +61,7 @@ class InteractionService {
     // Check if study set exists
     const studySet = await StudySets.query().findById(studySetId);
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     // Check if already favorited
@@ -71,7 +72,7 @@ class InteractionService {
       .first();
 
     if (existing) {
-      throw { status: 400, message: "Bạn đã yêu thích bộ học tập này rồi" };
+      throw new ApiError(400, "Bạn đã yêu thích bộ học tập này rồi");
     }
 
     await StudySetInteractions.transaction(async (trx) => {
@@ -105,7 +106,7 @@ class InteractionService {
       .first();
 
     if (!existing) {
-      throw { status: 404, message: "Bạn chưa yêu thích bộ học tập này" };
+      throw new ApiError(404, "Bạn chưa yêu thích bộ học tập này");
     }
 
     await StudySetInteractions.transaction(async (trx) => {
@@ -131,7 +132,7 @@ class InteractionService {
   async recordClone(studySetId: string, userId: string) {
     const studySet = await StudySets.query().findById(studySetId);
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     await StudySetInteractions.transaction(async (trx) => {
@@ -159,7 +160,7 @@ class InteractionService {
   async recordShare(studySetId: string, userId: string | null) {
     const studySet = await StudySets.query().findById(studySetId);
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     await StudySetInteractions.transaction(async (trx) => {

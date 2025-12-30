@@ -7,6 +7,7 @@ import interactionService from "./interactionService";
 import StudySetStats from "../models/StudySetStats";
 import FolderSets from "../models/FolderSets";
 import FolderStudySets from "../models/FolderStudySets";
+import { ApiError } from "../utils/ApiError";
 
 interface CreateStudySetBody {
   title: string;
@@ -56,7 +57,7 @@ class StudySetService {
         if (isLearning) {
           if (isLearning === "true") {
             queryBuilder
-              .innerJoin("user_learns as ul", function() {
+              .innerJoin("user_learns as ul", function () {
                 this.on("ss.id", "=", "ul.studySetId")
                   .andOn("ul.userId", "=", knex.raw("?", [userId]))
                   .andOn("ul.status", "=", knex.raw("?", ["active"]));
@@ -214,7 +215,7 @@ class StudySetService {
     const studySets = await StudySets.query()
       .alias("ss")
       .andWhere("ss.status", "active")
-      .innerJoin("user_learns as ul", function() {
+      .innerJoin("user_learns as ul", function () {
         this.on("ss.id", "=", "ul.studySetId")
           .andOn("ul.userId", "=", knex.raw("?", [userId]))
           .andOn("ul.status", "=", knex.raw("?", ["active"]));
@@ -290,10 +291,10 @@ class StudySetService {
 
   // Lấy studyset public trong hệ thống (có search và pagination)
   async getPublicStudySets(
-    userId: string, 
-    page: number = 1, 
-    limit: number = 20, 
-    search?: string, 
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+    search?: string,
     topicId?: string
   ) {
     const offset = (page - 1) * limit;
@@ -324,7 +325,7 @@ class StudySetService {
 
     // Apply search filter
     if (search) {
-      query = query.where(function() {
+      query = query.where(function () {
         this.where('ss.title', 'ilike', `%${search}%`)
           .orWhere('ss.description', 'ilike', `%${search}%`)
           .orWhere('users.username', 'ilike', `%${search}%`);
@@ -346,7 +347,7 @@ class StudySetService {
     if (search) {
       countQuery = countQuery
         .innerJoin("users", "ss.userId", "users.id")
-        .where(function() {
+        .where(function () {
           this.where('ss.title', 'ilike', `%${search}%`)
             .orWhere('ss.description', 'ilike', `%${search}%`)
             .orWhere('users.username', 'ilike', `%${search}%`);
@@ -475,9 +476,9 @@ class StudySetService {
         knex.raw("COALESCE(stats.shares, 0) as shares")
       )
       .first();
-    
+
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     // Record view interaction (async, don't wait)
@@ -499,15 +500,15 @@ class StudySetService {
 
   async createStudySet(userId: string, body: CreateStudySetBody) {
     if (!body.title || !body.topicId || !Array.isArray(body.flashcards)) {
-      throw { status: 400, message: "Yêu cầu không hợp lệ" };
+      throw new ApiError(400, "Yêu cầu không hợp lệ");
     }
 
     if (body.type !== "ORIGINAL" && body.type !== "QUIZLET") {
-      throw { status: 400, message: "Loại bộ học tập không hợp lệ" };
+      throw new ApiError(400, "Loại bộ học tập không hợp lệ");
     }
 
     if (body.type === "QUIZLET" && body.isPublic === true) {
-      throw { status: 400, message: "Bộ học tập từ Quizlet không được phép public" };
+      throw new ApiError(400, "Bộ học tập từ Quizlet không được phép public");
     }
 
     const exitStudySet = await StudySets.query()
@@ -516,7 +517,7 @@ class StudySetService {
       .first();
 
     if (exitStudySet) {
-      throw { status: 400, message: "Bạn đã có bộ học tập với tiêu đề này" };
+      throw new ApiError(400, "Bạn đã có bộ học tập với tiêu đề này");
     }
 
     let finalTopicId = body.topicId;
@@ -554,12 +555,12 @@ class StudySetService {
 
     if (body.folderSetId) {
       const checkFolderSet = await FolderSets.query()
-          .where("id", body.folderSetId)
-          .andWhere("userId", userId)
-          .increment("numberOfStudySets", 1)
-          .first();
+        .where("id", body.folderSetId)
+        .andWhere("userId", userId)
+        .increment("numberOfStudySets", 1)
+        .first();
 
-      if(checkFolderSet) {
+      if (checkFolderSet) {
         await FolderStudySets.query().insert({
           folderSetId: body.folderSetId,
           studySetId: newStudySet.id,
@@ -599,7 +600,7 @@ class StudySetService {
               .findById(flashcard.mediaId)
               .patch({ name: flashcard.term })
               .modify((e) => {
-                if(body.isPublic) {
+                if (body.isPublic) {
                   e.patch({ isPublic: true });
                 }
               });
@@ -617,11 +618,11 @@ class StudySetService {
       .first();
 
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     if ((studySet.type === "CLONE" || studySet.type === "QUIZLET") && body.isPublic === true) {
-      throw { status: 400, message: "Bộ học tập không được phép chỉnh sửa thành public" };
+      throw new ApiError(400, "Bộ học tập không được phép chỉnh sửa thành public");
     }
 
     if (body.title && body.title !== studySet.title) {
@@ -632,7 +633,7 @@ class StudySetService {
         .first();
 
       if (existingStudySet) {
-        throw { status: 400, message: "Bạn đã có bộ học tập với tiêu đề này" };
+        throw new ApiError(400, "Bạn đã có bộ học tập với tiêu đề này");
       }
     }
 
@@ -658,9 +659,9 @@ class StudySetService {
       await StudySets.query(trx).patchAndFetchById(id, {
         title: body.title || studySet.title,
         description: body.description || studySet.description,
-        icon: body.icon !== undefined ? body.icon : studySet.icon,
+        icon: body.icon ?? studySet.icon,
         topicId: finalTopicId,
-        isPublic: body.isPublic !== undefined ? body.isPublic : studySet.isPublic,
+        isPublic: body.isPublic ?? studySet.isPublic,
         numberOfFlashcards: body.flashcards?.length || studySet.numberOfFlashcards,
         updatedAt: new Date().toISOString(),
       });
@@ -670,12 +671,15 @@ class StudySetService {
           .where("studySetId", id);
 
         const existingFlashcardIds = existingFlashcards.map((f) => f.id);
-        const newFlashcardIds = body.flashcards
-          .filter((f: any) => f.id)
-          .map((f: any) => f.id);
+        const newFlashcardIds = new Set(
+          body.flashcards
+            .filter((f: any) => f.id)
+            .map((f: any) => f.id)
+        );
+
 
         const toDelete = existingFlashcardIds.filter(
-          (fId) => !newFlashcardIds.includes(fId)
+          (fId) => !newFlashcardIds.has(fId)
         );
 
         if (toDelete.length > 0) {
@@ -711,7 +715,7 @@ class StudySetService {
                   .findById(flashcard.mediaId)
                   .patch({ name: flashcard.term })
                   .modify((e) => {
-                    if(body.isPublic) {
+                    if (body.isPublic) {
                       e.patch({ isPublic: true });
                     } else {
                       e.patch({ isPublic: false });
@@ -732,7 +736,7 @@ class StudySetService {
       .first();
 
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập");
     }
 
     const flashcards = await Flashcards.query()
@@ -748,15 +752,15 @@ class StudySetService {
         .where("id", id)
         .andWhere("userId", userId)
         .patch({ status: "inactive" }),
-      
+
       Flashcards.query()
         .where("studySetId", id)
         .patch({ status: "inactive" }),
-      
-      mediaIds.length > 0 
+
+      mediaIds.length > 0
         ? Media.query()
-            .whereIn("id", mediaIds)
-            .patch({ status: "inactive" })
+          .whereIn("id", mediaIds)
+          .patch({ status: "inactive" })
         : Promise.resolve()
     ]);
   }
@@ -768,25 +772,25 @@ class StudySetService {
       .first();
 
     if (!existingStudySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập để sao chép" };
+      throw new ApiError(404, "Không tìm thấy bộ học tập để sao chép");
     }
 
     if (existingStudySet.type === "QUIZLET") {
-      throw { status: 400, message: "Không thể sao chép bộ học tập từ Quizlet" };
+      throw new ApiError(400, "Không thể sao chép bộ học tập từ Quizlet");
     }
 
     if (existingStudySet.userId !== userId && type === "DUPLICATE") {
-      throw { status: 403, message: "Bạn không có quyền nhân bản bộ học tập này" };
+      throw new ApiError(403, "Bạn không có quyền nhân bản bộ học tập này");
     }
 
     if (existingStudySet.userId === userId && type === "CLONE") {
-      throw { status: 400, message: "Bạn không thể sao chép bộ học tập của chính mình" };
+      throw new ApiError(400, "Bạn không thể sao chép bộ học tập của chính mình");
     }
 
     if (existingStudySet.isPublic === false && type === "CLONE") {
-      throw { status: 403, message: "Bạn không có quyền sao chép bộ học tập riêng tư" };
+      throw new ApiError(403, "Bạn không có quyền sao chép bộ học tập riêng tư");
     }
-    
+
     let copyStudySet = null;
 
     await StudySets.transaction(async (trx) => {

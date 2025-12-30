@@ -9,8 +9,8 @@ interface StudySession {
 }
 
 class SessionStore {
-  private sessions: Map<string, StudySession>;
-  private cleanupInterval: NodeJS.Timeout;
+  private readonly sessions: Map<string, StudySession>;
+  private readonly cleanupInterval: NodeJS.Timeout;
 
   constructor() {
     this.sessions = new Map();

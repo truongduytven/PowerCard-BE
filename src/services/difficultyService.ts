@@ -10,11 +10,11 @@ interface IDifficultyConfig {
 
 class DifficultyService {
   async configureDifficulties(config: IDifficultyConfig) {
-    await Promise.all(config.difficulties.map((difficulty) => {
+    await Promise.all(config.difficulties.map((difficulty) =>
       Difficulties.query().patch({ minutes: difficulty.minutes })
         .where('userLearnId', config.userLearnId)
-        .andWhere('name', difficulty.name);
-    }));
+        .andWhere('name', difficulty.name)
+    ));
     return true;
   }
 

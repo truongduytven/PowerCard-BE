@@ -67,7 +67,7 @@ class AuthController {
       }
 
       const user = await Users.query().findById(userId);
-      if (user && user.avatarId) {
+      if (user?.avatarId) {
         await cloudinary.uploader.destroy(user.avatarId);
       }
 

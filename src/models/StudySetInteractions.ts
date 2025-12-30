@@ -6,7 +6,7 @@ import Users from './Users';
 export type InteractionType = 'view' | 'favorite' | 'clone' | 'share';
 
 class StudySetInteractions extends BaseModel {
-  static tableName = 'study_set_interactions';
+  public tableName = 'study_set_interactions';
 
   id!: string;
   studySetId!: string;
@@ -14,7 +14,7 @@ class StudySetInteractions extends BaseModel {
   type!: InteractionType;
   createdAt!: string;
 
-  static get jsonSchema() {
+  public get jsonSchema() {
     return {
       type: 'object',
       required: ['studySetId', 'type'],
@@ -31,7 +31,7 @@ class StudySetInteractions extends BaseModel {
     };
   }
 
-  static get relationMappings() {
+  public get relationMappings() {
     return {
       studySet: {
         relation: Model.BelongsToOneRelation,

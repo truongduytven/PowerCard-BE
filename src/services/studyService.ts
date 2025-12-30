@@ -3,6 +3,7 @@ import Flashcards from "../models/Flashcards";
 import LearnFlashcards from "../models/LearnFlashcards";
 import Difficulties from "../models/Difficulties";
 import SessionStore from "../utils/SessionStore";
+import { ApiError } from "../utils/ApiError";
 
 interface IFlashcardResponse {
   id: string;
@@ -100,7 +101,7 @@ class StudyService {
     const session = SessionStore.getSession(sessionId);
     
     if (!session) {
-      throw { status: 401, message: 'SESSION_EXPIRED' };
+      throw new ApiError(401, 'SESSION_EXPIRED');
     }
 
     const userStudy = await UserLearns.query()
@@ -112,7 +113,7 @@ class StudyService {
       throw new Error('User study not found');
     }
 
-    let newIndex = session.currentIndex;
+    let newIndex;
     
     if (direction === 'next') {
       newIndex = Math.min(session.currentIndex + limit, session.flashcardOrder.length);

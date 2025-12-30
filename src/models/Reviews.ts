@@ -16,9 +16,9 @@ export default class Reviews extends BaseModel implements IReview{
   rating!: number
   comment?: string
 
-  static tableName = 'reviews'
+  public tableName = 'reviews'
 
-  static relationMappings: RelationMappings = {
+  public relationMappings: RelationMappings = {
     user: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./Users').default,
