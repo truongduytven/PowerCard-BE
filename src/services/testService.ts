@@ -1,5 +1,6 @@
 import Flashcards from "../models/Flashcards";
 import StudySets from "../models/StudySets";
+import { ApiError } from "../utils/ApiError";
 
 interface TestQuestion {
   id: string;
@@ -28,7 +29,7 @@ class TestService {
       .where('status', 'active');
 
     if (!studySet) {
-      throw { status: 404, message: "Không tìm thấy bộ học tập" };
+      throw new ApiError(404, "Bộ học tập không tồn tại");
     }
 
     // Get all flashcards from the study set
@@ -37,14 +38,11 @@ class TestService {
       .orderBy('position', 'asc');
 
     if (flashcards.length === 0) {
-      throw { status: 400, message: "Bộ học tập không có flashcard nào" };
+      throw new ApiError(400, "Bộ học tập không có flashcard nào");
     }
 
     if (flashcards.length < 4) {
-      throw { 
-        status: 400, 
-        message: "Bộ học tập cần ít nhất 4 flashcards để tạo bài test" 
-      };
+      throw new ApiError(400, "Bộ học tập cần ít nhất 4 flashcards để tạo bài test");
     }
 
     // Limit questions to available flashcards

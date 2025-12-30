@@ -1,14 +1,15 @@
 import cloudinary from '../configs/cloudinary';
 import Media from '../models/Media';
+import { ApiError } from '../utils/ApiError';
 
 class MediaService {
   async uploadMedia(userId: string, file: Express.Multer.File) {
     if (!userId) {
-      throw { status: 401, message: 'Không có quyền truy cập' };
+      throw new ApiError(401, 'Không có quyền truy cập');
     }
 
     if (!file) {
-      throw { status: 400, message: 'Chưa có file được tải lên' };
+      throw new ApiError(400, 'Chưa có file được tải lên');
     }
 
     const uploadImage = await new Promise<any>((resolve, reject) => {
@@ -21,8 +22,15 @@ class MediaService {
           ]
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            reject(
+              error instanceof Error
+                ? error
+                : new Error(error?.message || 'Cloudinary upload failed')
+            );
+          } else {
+            resolve(result);
+          }
         }
       );
       uploadStream.end(file.buffer);
@@ -39,9 +47,9 @@ class MediaService {
 
   async getMediaList(search?: string) {
     let query = Media.query()
-                     .where('status', 'active')
-                     .andWhere('isPublic', true);
-    
+      .where('status', 'active')
+      .andWhere('isPublic', true);
+
     if (search) {
       query = query.andWhere('name', 'like', `%${search}%`);
     }

@@ -18,9 +18,9 @@ export default class Media extends BaseModel implements IMedia {
   isPublic!: boolean
   status!: string
 
-  static tableName = 'media'
+  public tableName = 'media'
 
-  static relationMappings: RelationMappings = {
+  public relationMappings: RelationMappings = {
     flashcard: {
       relation: Model.HasManyRelation,
       modelClass: () => require('./Flashcards').default,

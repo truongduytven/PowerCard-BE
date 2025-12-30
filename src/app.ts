@@ -1,10 +1,9 @@
 import createError from 'http-errors'
-import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 import indexRouter from './routes/index'
-import { Request, Response, NextFunction } from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
 
@@ -18,7 +17,7 @@ import { checkDatabaseTables } from './configs/checkDb'
 import dotenv from 'dotenv'
 dotenv.config()
 
-var app = express()
+const app = express()
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(cors({

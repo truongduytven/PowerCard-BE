@@ -2,6 +2,7 @@ import Users from "../models/Users";
 import UserLogs from "../models/UserLog";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { ApiError } from "../utils/ApiError";
 
 const ACCESS_TOKEN_TTL = '24h';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,17 +14,17 @@ class AuthService {
       .first();
     
     if (!user) {
-      throw { status: 401, message: "Email hoặc mật khẩu không đúng" };
+      throw new ApiError(401, "Email hoặc mật khẩu không đúng");
     }
 
     if (!user.status || user.status !== 'active') {
-      throw { status: 403, message: "Tài khoản của bạn không được phép đăng nhập" };
+      throw new ApiError(403, "Tài khoản của bạn không được phép đăng nhập");
     }
     
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
     if (!isPasswordValid) {
-      throw { status: 401, message: "Email hoặc mật khẩu không đúng" };
+      throw new ApiError(401, "Email hoặc mật khẩu không đúng");
     }
 
     const accessToken = jwt.sign(
@@ -103,13 +104,9 @@ class AuthService {
   }
 
   async register(email: string, password: string, name: string) {
-    if (!emailRegex.test(email)) {
-      throw { status: 400, message: "Email không hợp lệ" };
-    }
-
     const existingUser = await Users.query().where("email", email).first();
     if (existingUser) {
-      throw { status: 409, message: "Email đã được sử dụng" };
+      throw new ApiError(409, "Email đã được sử dụng");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -142,7 +139,7 @@ class AuthService {
       .select('id', 'username', 'email', 'role', 'status', 'avatarUrl', 'avatarId', 'createdAt', 'updatedAt');
 
     if (!user) {
-      throw { status: 404, message: "Không tìm thấy người dùng" };
+      throw new ApiError(404, "Không tìm thấy người dùng");
     }
 
     // Update login streaks
@@ -152,7 +149,7 @@ class AuthService {
 
     // Convert lastLoginAt to UTC+7
     let lastLoginAtVN = null;
-    if (userLog && userLog.lastLoginAt) {
+    if (userLog?.lastLoginAt) {
       const date = new Date(userLog.lastLoginAt);
       date.setHours(date.getHours() + 7);
       lastLoginAtVN = date.toISOString();
@@ -172,6 +169,14 @@ class AuthService {
         }
       }
     };
+  }
+
+  async getAllUsers() {
+    const users = await Users.query()
+      .select('id', 'username', 'email', 'role', 'status', 'avatarUrl', 'avatarId', 'createdAt', 'updatedAt')
+      .orderBy('createdAt', 'desc');
+
+    return users;
   }
 }
 
