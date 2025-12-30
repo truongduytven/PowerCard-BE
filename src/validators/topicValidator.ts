@@ -8,7 +8,7 @@ export const createTopicValidator = [
     .isLength({ min: 1, max: 100 })
     .withMessage('Tên chủ đề phải có từ 1-100 ký tự'),
   body('description')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isLength({ max: 500 })
     .withMessage('Mô tả không được vượt quá 500 ký tự'),
@@ -21,12 +21,12 @@ export const updateTopicValidator = [
     .isUUID()
     .withMessage('Topic ID phải là UUID hợp lệ'),
   body('name')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Tên chủ đề phải có từ 1-100 ký tự'),
   body('description')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isLength({ max: 500 })
     .withMessage('Mô tả không được vượt quá 500 ký tự'),

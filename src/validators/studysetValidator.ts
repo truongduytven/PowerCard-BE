@@ -158,20 +158,20 @@ export const studySetIdParamValidator = [
 // Validator cho public study sets (có search và pagination)
 export const getPublicStudySetsQueryValidator = [
   query('page')
-    .optional()
+    .optional({ values: 'falsy' })
     .isInt({ min: 1 })
     .withMessage('page phải là số nguyên dương'),
   query('limit')
-    .optional()
+    .optional({ values: 'falsy' })
     .isInt({ min: 1, max: 100 })
     .withMessage('limit phải là số từ 1-100'),
   query('search')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isLength({ max: 255 })
     .withMessage('search không được vượt quá 255 ký tự'),
   query('topicId')
-    .optional()
+    .optional({ values: 'falsy' })
     .isUUID()
     .withMessage('topicId phải là UUID hợp lệ'),
 ]

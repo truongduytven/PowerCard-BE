@@ -10,11 +10,11 @@ export const startStudyValidator = [
 
 export const getCardsValidator = [
   query('direction')
-    .optional()
+    .optional({ values: 'falsy' })
     .isIn(['next', 'prev'])
     .withMessage('direction phải là next hoặc prev'),
   query('limit')
-    .optional()
+    .optional({ values: 'falsy' })
     .isInt({ min: 1, max: 100 })
     .withMessage('limit phải là số từ 1-100'),
 ];
