@@ -68,16 +68,3 @@ export const folderSetIdParamValidator = [
     .isUUID()
     .withMessage('Folder ID phải là UUID hợp lệ'),
 ]
-
-// export const addStudySetToFolderValidator = [
-//   param('id')
-//     .notEmpty()
-//     .withMessage('Folder ID là bắt buộc')
-//     .isUUID()
-//     .withMessage('Folder ID phải là UUID hợp lệ'),
-//   body('studySetId')
-//     .notEmpty()
-//     .withMessage('studySetId là bắt buộc')
-//     .isUUID()
-//     .withMessage('studySetId phải là UUID hợp lệ'),
-// ]

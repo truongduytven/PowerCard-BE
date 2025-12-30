@@ -30,11 +30,11 @@ export const loginValidator = [
   body('password').notEmpty().withMessage('Password là bắt buộc'),
 ]
 
-// export const changePasswordValidator = [
-//   body('oldPassword').notEmpty().withMessage('Mật khẩu cũ là bắt buộc'),
-//   body('newPassword')
-//     .notEmpty()
-//     .withMessage('Mật khẩu mới là bắt buộc')
-//     .isLength({ min: 6 })
-//     .withMessage('Mật khẩu mới phải có ít nhất 6 ký tự'),
-// ]
+export const changePasswordValidator = [
+  body('oldPassword').notEmpty().withMessage('Mật khẩu cũ là bắt buộc'),
+  body('newPassword')
+    .notEmpty()
+    .withMessage('Mật khẩu mới là bắt buộc')
+    .isLength({ min: 6 })
+    .withMessage('Mật khẩu mới phải có ít nhất 6 ký tự'),
+]
