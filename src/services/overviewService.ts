@@ -53,8 +53,8 @@ class OverviewService {
       .first();
 
     return {
-      cardsStudied: parseInt(result?.cards_studied || '0'),
-      cardsMastered: parseInt(result?.cards_mastered || '0'),
+      cardsStudied: Number.parseInt(result?.cards_studied || '0'),
+      cardsMastered: Number.parseInt(result?.cards_mastered || '0'),
     };
   }
 
@@ -92,7 +92,7 @@ class OverviewService {
 
     const accuracyRate = (totalScore / learnFlashcards.length) * 100;
 
-    return { rate: parseFloat(accuracyRate.toFixed(2)) };
+    return { rate: Number.parseFloat(accuracyRate.toFixed(2)) };
   }
 
   private async calculateTodayProgress(userId: string) {
@@ -124,8 +124,8 @@ class OverviewService {
       )
       .first();
 
-    const todayCards = parseInt(result?.today_cards || '0');
-    const yesterdayCards = parseInt(result?.yesterday_cards || '0');
+    const todayCards = Number.parseInt(result?.today_cards || '0');
+    const yesterdayCards = Number.parseInt(result?.yesterday_cards || '0');
 
     const compareYesterday = yesterdayCards === 0 
       ? (todayCards > 0 ? 100 : 0)
@@ -133,7 +133,7 @@ class OverviewService {
 
     return {
       cards: todayCards,
-      compareYesterday: parseFloat(compareYesterday.toFixed(2)),
+      compareYesterday: Number.parseFloat(compareYesterday.toFixed(2)),
     };
   }
 
@@ -163,8 +163,8 @@ class OverviewService {
           .count('* as count')
           .first();
 
-        const total = parseInt(String(totalCards?.count || '0'));
-        const learned = parseInt(String(learnedCards?.count || '0'));
+        const total = Number.parseInt(String(totalCards?.count || '0'));
+        const learned = Number.parseInt(String(learnedCards?.count || '0'));
         const percentage = total > 0 ? Math.round((learned / total) * 100) : 0;
 
         return {
@@ -445,7 +445,7 @@ class OverviewService {
     reviews.forEach((review: any) => {
       const reviewDate = new Date(review.lastReviewedAt);
       const hour = reviewDate.getHours();
-      if (!isNaN(hour)) {
+      if (!Number.isNaN(hour)) {
         hourCounts[hour] = (hourCounts[hour] || 0) + 1;
       }
     });
@@ -459,9 +459,9 @@ class OverviewService {
 
     if (!peakHourEntry) return null;
 
-    const hour = parseInt(peakHourEntry[0]);
+    const hour = Number.parseInt(peakHourEntry[0]);
     
-    if (isNaN(hour)) {
+    if (Number.isNaN(hour)) {
       return null;
     }
     
@@ -504,7 +504,7 @@ class OverviewService {
     reviews.forEach((review: any) => {
       const reviewDate = new Date(review.lastReviewedAt);
       const day = reviewDate.getDay();
-      if (!isNaN(day) && day >= 0 && day <= 6) {
+      if (!Number.isNaN(day) && day >= 0 && day <= 6) {
         const dayName = dayNames[day];
         if (dayName) {
           dayCounts[dayName] = (dayCounts[dayName] || 0) + 1;
@@ -553,8 +553,8 @@ class OverviewService {
     }
 
     const topicAccuracy = studySetsWithAccuracy.map((topic: any) => {
-      const total = parseInt(topic.total_cards);
-      const score = parseFloat(topic.score || '0');
+      const total = Number.parseInt(topic.total_cards);
+      const score = Number.parseFloat(topic.score || '0');
       const accuracy = total > 0 ? Math.round((score / total) * 100) : 0;
       return {
         name: topic.name,
@@ -593,8 +593,8 @@ class OverviewService {
     }
 
     const topicAccuracy = studySetsWithAccuracy.map((topic: any) => {
-      const total = parseInt(topic.total_cards);
-      const score = parseFloat(topic.score || '0');
+      const total = Number.parseInt(topic.total_cards);
+      const score = Number.parseFloat(topic.score || '0');
       const accuracy = total > 0 ? Math.round((score / total) * 100) : 0;
       return {
         name: topic.name,
@@ -631,7 +631,7 @@ class OverviewService {
           .count('id as count')
           .first();
 
-        const total = parseInt(String(totalFlashcards?.count || '0'));
+        const total = Number.parseInt(String(totalFlashcards?.count || '0'));
 
         // Số flashcards đã study (có trong learn_flashcards)
         const studiedFlashcards = await knex('learn_flashcards')
@@ -640,7 +640,7 @@ class OverviewService {
           .count('id as count')
           .first();
 
-        const studied = parseInt(String(studiedFlashcards?.count || '0'));
+        const studied = Number.parseInt(String(studiedFlashcards?.count || '0'));
 
         // Số flashcards mastered (difficulty = Easy)
         const masteredFlashcards = await knex('learn_flashcards as lf')
@@ -650,7 +650,7 @@ class OverviewService {
           .count('lf.id as count')
           .first();
 
-        const mastered = parseInt(String(masteredFlashcards?.count || '0'));
+        const mastered = Number.parseInt(String(masteredFlashcards?.count || '0'));
 
         // Progress (%)
         const progress = total > 0 ? Math.round((studied / total) * 100) : 0;

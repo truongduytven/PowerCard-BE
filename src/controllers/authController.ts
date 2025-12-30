@@ -61,11 +61,11 @@ class AuthController {
   async uploadAvatar(req: Request, res: Response) {
     try {
       const userId = (req as any).user.id;
-      
+
       if (!req.file) {
         return res.status(400).json({ message: "Chưa có file được tải lên" });
       }
-      
+
       const user = await Users.query().findById(userId);
       if (user && user.avatarId) {
         await cloudinary.uploader.destroy(user.avatarId);
@@ -81,8 +81,15 @@ class AuthController {
             ]
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              reject(
+                error instanceof Error
+                  ? error
+                  : new Error(error?.message || 'Cloudinary upload failed')
+              );
+            } else {
+              resolve(result);
+            }
           }
         );
         uploadStream.end(req.file?.buffer);

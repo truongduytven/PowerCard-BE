@@ -358,7 +358,7 @@ class StudySetService {
     }
 
     const countResult = await countQuery.count('* as total').first();
-    const totalRecords = parseInt((countResult as any)?.total as string || '0');
+    const totalRecords = Number.parseInt((countResult as any)?.total as string || '0');
     const totalPages = Math.ceil(totalRecords / limit);
 
     // Get paginated results

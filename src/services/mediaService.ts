@@ -21,8 +21,15 @@ class MediaService {
           ]
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            reject(
+              error instanceof Error
+                ? error
+                : new Error(error?.message || 'Cloudinary upload failed')
+            );
+          } else {
+            resolve(result);
+          }
         }
       );
       uploadStream.end(file.buffer);
@@ -39,9 +46,9 @@ class MediaService {
 
   async getMediaList(search?: string) {
     let query = Media.query()
-                     .where('status', 'active')
-                     .andWhere('isPublic', true);
-    
+      .where('status', 'active')
+      .andWhere('isPublic', true);
+
     if (search) {
       query = query.andWhere('name', 'like', `%${search}%`);
     }
