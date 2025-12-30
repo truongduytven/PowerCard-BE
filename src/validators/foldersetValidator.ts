@@ -8,7 +8,7 @@ export const createFolderSetValidator = [
     .isLength({ min: 1, max: 255 })
     .withMessage('Tiêu đề phải có từ 1-255 ký tự'),
   body('description')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Mô tả không được vượt quá 1000 ký tự'),
@@ -19,7 +19,8 @@ export const createFolderSetValidator = [
     .isString()
     .withMessage('Icon phải là chuỗi hợp lệ'),
   body('studySets')
-    .optional()
+    .notEmpty()
+    .withMessage('studySets là phải có ít nhất một phần tử')
     .isArray()
     .withMessage('studySets phải là một mảng'),
   body('studySets.*')
@@ -40,7 +41,7 @@ export const updateFolderSetValidator = [
     .isLength({ min: 1, max: 255 })
     .withMessage('Tiêu đề phải có từ 1-255 ký tự'),
   body('description')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Mô tả không được vượt quá 1000 ký tự'),
@@ -51,7 +52,8 @@ export const updateFolderSetValidator = [
     .isString()
     .withMessage('Icon phải là chuỗi hợp lệ'),
   body('studySets')
-    .optional()
+    .notEmpty()
+    .withMessage('studySets là phải có ít nhất một phần tử')
     .isArray()
     .withMessage('studySets phải là một mảng'),
   body('studySets.*')

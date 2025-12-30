@@ -524,8 +524,9 @@ class StudySetService {
 
     if (!isUUID(body.topicId)) {
       const existingTopic = await Topics.query()
-        .where("LOWER(name) = ?", body.topicId.toLowerCase())
+        .whereRaw('LOWER(name) = ?', [body.topicId.toLowerCase()])
         .first();
+
 
       if (existingTopic) {
         finalTopicId = existingTopic.id;
@@ -535,6 +536,11 @@ class StudySetService {
           status: "active",
         });
         finalTopicId = newTopic.id;
+      }
+    } else {
+      const topicExists = await Topics.query().findById(body.topicId);
+      if (!topicExists) {
+        throw new ApiError(400, "Chủ đề không tồn tại");
       }
     }
 
