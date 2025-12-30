@@ -2,7 +2,9 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - test-sonar
   pull_request:
     branches: [ main ]
 
@@ -21,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
