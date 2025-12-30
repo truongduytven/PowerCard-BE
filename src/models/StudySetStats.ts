@@ -3,7 +3,7 @@ import { Model } from 'objection';
 import StudySets from './StudySets';
 
 class StudySetStats extends BaseModel {
-  public static tableName = 'study_set_stats';
+  public static readonly tableName = 'study_set_stats';
 
   studySetId!: string;
   views!: number;

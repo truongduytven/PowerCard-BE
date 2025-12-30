@@ -6,7 +6,7 @@ import Users from './Users';
 export type InteractionType = 'view' | 'favorite' | 'clone' | 'share';
 
 class StudySetInteractions extends BaseModel {
-  public static tableName = 'study_set_interactions';
+  public static readonly tableName = 'study_set_interactions';
 
   id!: string;
   studySetId!: string;

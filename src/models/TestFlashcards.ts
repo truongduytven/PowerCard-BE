@@ -20,9 +20,9 @@ export default class TestFlashcards extends BaseModel implements ITestFlashcard 
   flashcardId!: string
   userAnswer?: string
 
-  public static tableName = 'test_flashcards'
+  public static readonly tableName = 'test_flashcards'
 
-  public static relationMappings: RelationMappings = {
+  public static readonly relationMappings: RelationMappings = {
     usertest: {
       relation: Model.BelongsToOneRelation,
       modelClass: () => require('./UserTests').default,

@@ -14,9 +14,9 @@ export default class Difficulties extends BaseModel implements IDifficulty {
   name!: string
   minutes!: number
 
-  public static tableName = 'difficulties'
+  public static readonly tableName = 'difficulties'
 
-  public static relationMappings: RelationMappings = {
+  public static readonly relationMappings: RelationMappings = {
     learnFlashcard: {
       relation: Model.HasManyRelation,
       modelClass: () => require('./LearnFlashcards').default,

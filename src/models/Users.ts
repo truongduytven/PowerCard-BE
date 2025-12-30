@@ -26,9 +26,9 @@ export default class Users extends BaseModel implements IUser {
   createdAt!: string
   updatedAt!: string
 
-  public static tableName = 'users'
+  public static readonly tableName = 'users'
 
-  public static relationMappings: RelationMappings = {
+  public static readonly relationMappings: RelationMappings = {
     studyset: {
       relation: Model.HasManyRelation,
       modelClass: () => require('./StudySets').default,

@@ -12,9 +12,9 @@ export default class Topics extends BaseModel implements ITopic {
   name!: string
   status!: string
 
-  public static tableName = 'topics'
+  public static readonly tableName = 'topics'
 
-  public static relationMappings: RelationMappings = {
+  public static readonly relationMappings: RelationMappings = {
     studyset: {
       relation: Model.HasManyRelation,
       modelClass: () => require('./StudySets').default,
