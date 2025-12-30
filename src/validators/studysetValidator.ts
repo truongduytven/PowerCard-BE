@@ -8,7 +8,7 @@ export const createStudySetValidator = [
     .isLength({ min: 1, max: 255 })
     .withMessage('Tiêu đề phải có từ 1-255 ký tự'),
   body('description')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Mô tả không được vượt quá 1000 ký tự'),
@@ -21,7 +21,7 @@ export const createStudySetValidator = [
     .notEmpty()
     .withMessage('topicId là bắt buộc'),
   body('folderSetId')
-    .optional()
+    .optional({ nullable: true })
     .isUUID()
     .withMessage('folderSetId phải là UUID hợp lệ'),
   body('isPublic')
@@ -52,7 +52,7 @@ export const createStudySetValidator = [
     .isInt({ min: 1 })
     .withMessage('Vị trí phải là số nguyên dương'),
   body('flashcards.*.mediaId')
-    .optional()
+    .optional({ nullable: true })
     .isUUID()
     .withMessage('mediaId phải là UUID hợp lệ'),  
 ]
@@ -70,7 +70,7 @@ export const updateStudySetValidator = [
     .isLength({ min: 1, max: 255 })
     .withMessage('Tiêu đề phải có từ 1-255 ký tự'),
   body('description')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Mô tả không được vượt quá 1000 ký tự'),
@@ -83,7 +83,7 @@ export const updateStudySetValidator = [
     .notEmpty()
     .withMessage('topicId là bắt buộc'),
   body('folderSetId')
-    .optional()
+    .optional({ nullable: true })
     .isUUID()
     .withMessage('folderSetId phải là UUID hợp lệ'),
   body('isPublic')
@@ -114,7 +114,7 @@ export const updateStudySetValidator = [
     .isInt({ min: 1 })
     .withMessage('Vị trí phải là số nguyên dương'),
   body('flashcards.*.mediaId')
-    .optional()
+    .optional({ nullable: true })
     .isUUID()
     .withMessage('mediaId phải là UUID hợp lệ'),  
 ]

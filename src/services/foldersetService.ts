@@ -57,6 +57,16 @@ class FolderSetService {
       throw new ApiError(400, "Yêu cầu không hợp lệ");
     }
 
+    const existingFolderset = await FolderSets.query()
+      .where("userId", userId)
+      .andWhere("title", title)
+      .andWhere("status", "active")
+      .first();
+
+    if (existingFolderset) {
+      throw new ApiError(409, "Đã tồn tại bộ thư mục với tiêu đề này");
+    }
+
     const newFolderSet = await FolderSets.query().insert({
       userId,
       title,
